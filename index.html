@@ -92,7 +92,7 @@
           <h3 class="fw-bold mb-0" style="color: #1B435D;">Master Requisitions Hub</h3>
         </div>
         <div class="d-flex gap-2">
-          <button class="btn btn-outline-primary btn-sm fw-bold" onclick="renderRequisitionsTable()"><i class="fa-solid fa-rotate me-1"></i> Refresh List</button>
+          <button class="btn btn-success btn-sm fw-bold" onclick="renderRequisitionsTable()"><i class="fa-solid fa-rotate me-1"></i> Force Refresh Hub</button>
           <button class="btn btn-warning fw-bold" onclick="openGenerateLinkModal()"><i class="fa-solid fa-link me-1"></i> Generate Link</button>
         </div>
       </div>
@@ -157,8 +157,9 @@
 
         <!-- Department Submitted Requisitions List -->
         <div class="card shadow-sm border-0">
-          <div class="card-header bg-secondary text-white p-3">
+          <div class="card-header bg-secondary text-white p-3 d-flex justify-content-between align-items-center">
             <h6 class="mb-0 fw-bold"><i class="fa-solid fa-list-check me-2"></i>My Department Submitted Requisitions</h6>
+            <button class="btn btn-sm btn-light fw-bold" onclick="renderDeptHistoryTable()"><i class="fa-solid fa-rotate"></i> Refresh</button>
           </div>
           <div class="card-body p-0">
             <div class="table-responsive">
@@ -267,7 +268,6 @@
   <!-- Bootstrap JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // Broadcast Channel for live tab sync on the same computer
     const syncChannel = new BroadcastChannel('finance_requisitions_channel');
 
     let currentActiveId = null;
@@ -276,7 +276,12 @@
     let currentRole = '';
 
     function getStoredRequisitions() {
-      return JSON.parse(localStorage.getItem('finance_requisitions') || '[]');
+      // Fallback/combined parser to ensure data reads even across local storage scopes
+      try {
+        return JSON.parse(localStorage.getItem('finance_requisitions') || '[]');
+      } catch(e) {
+        return [];
+      }
     }
 
     function saveStoredRequisitions(data) {
@@ -325,18 +330,14 @@
       setTimeout(() => { document.getElementById('copySuccessMsg').style.display = 'none'; }, 3000);
     }
 
-    // Configure phone / department view
     function setupDepartmentPortalView(dept, role) {
       isDepartmentPortal = true;
       currentDept = dept;
       currentRole = role;
 
-      // Hide Master computer modules
       document.getElementById('helloPageSection').style.display = 'none';
       document.getElementById('payrollAppSection').style.display = 'none';
       document.getElementById('requisitionsAppSection').style.display = 'none';
-
-      // Show Department view
       document.getElementById('departmentPortalView').style.display = 'block';
 
       document.getElementById('portalTitleHeader').textContent = `${dept} (${role} Access)`;
@@ -403,8 +404,10 @@
       currentList.push(newReq);
       saveStoredRequisitions(currentList);
 
-      // Notify other tabs/windows
-      syncChannel.postMessage({ type: 'REQ_UPDATED', data: newReq });
+      // Trigger cross-tab sync broadcast
+      try {
+        syncChannel.postMessage({ type: 'REQ_UPDATED', data: newReq });
+      } catch(err) {}
 
       alert('Requisition submitted successfully!');
       resetDeptForm();
@@ -443,7 +446,7 @@
       const requisitionsData = getStoredRequisitions();
 
       if (requisitionsData.length === 0) { 
-        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">No requisitions found.</td></tr>`; 
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">No requisitions found. Make a test submission using a department link.</td></tr>`; 
         return; 
       }
 
@@ -495,14 +498,15 @@
       requisitionsData[currentActiveId].status = status;
       saveStoredRequisitions(requisitionsData);
 
-      syncChannel.postMessage({ type: 'REQ_UPDATED' });
+      try {
+        syncChannel.postMessage({ type: 'REQ_UPDATED' });
+      } catch(err) {}
 
       openRequisitionDetail(currentActiveId);
       renderRequisitionsTable();
       alert(`Status changed to ${status}`);
     }
 
-    // Auto Refresh Handlers
     syncChannel.onmessage = function() {
       if (!isDepartmentPortal) {
         document.getElementById('headerReqNotificationDot').style.display = 'block';
@@ -512,14 +516,12 @@
       }
     };
 
-    window.addEventListener('storage', function(e) {
-      if (e.key === 'finance_requisitions') {
-        if (!isDepartmentPortal) {
-          document.getElementById('headerReqNotificationDot').style.display = 'block';
-          renderRequisitionsTable();
-        } else {
-          renderDeptHistoryTable();
-        }
+    window.addEventListener('storage', function() {
+      if (!isDepartmentPortal) {
+        document.getElementById('headerReqNotificationDot').style.display = 'block';
+        renderRequisitionsTable();
+      } else {
+        renderDeptHistoryTable();
       }
     });
 
