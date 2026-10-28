@@ -265,7 +265,7 @@
   <!-- Bootstrap JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Firebase Modular SDKs -->
+  <!-- Firebase Modular SDKs & App Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { 
@@ -279,7 +279,6 @@
       orderBy 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Your exact Firebase configuration keys
     const firebaseConfig = {
       apiKey: "AIzaSyCqKDiwE29E-TK5MSgO83PhZDd00J1oH-w",
       authDomain: "financemanagingapp.firebaseapp.com",
@@ -290,7 +289,6 @@
       measurementId: "G-C9HRKEP01S"
     };
 
-    // Initialize Firebase & Firestore
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
@@ -300,29 +298,30 @@
     let currentDept = '';
     let currentRole = '';
 
-    // Global Functions Attached to Window
-    window.openPayrollApp = function() { 
-      document.getElementById('helloPageSection').style.display = 'none'; 
-      document.getElementById('requisitionsAppSection').style.display = 'none'; 
-      document.getElementById('payrollAppSection').style.display = 'block'; 
+    // Attach all click/submit triggers explicitly to window scope
+    window.openPayrollApp = function() {
+      document.getElementById('helloPageSection').style.display = 'none';
+      document.getElementById('requisitionsAppSection').style.display = 'none';
+      document.getElementById('payrollAppSection').style.display = 'block';
     };
 
-    window.openRequisitionsApp = function() { 
-      document.getElementById('helloPageSection').style.display = 'none'; 
-      document.getElementById('payrollAppSection').style.display = 'none'; 
-      document.getElementById('requisitionsAppSection').style.display = 'block'; 
-      document.getElementById('headerReqNotificationDot').style.display = 'none'; 
+    window.openRequisitionsApp = function() {
+      document.getElementById('helloPageSection').style.display = 'none';
+      document.getElementById('payrollAppSection').style.display = 'none';
+      document.getElementById('requisitionsAppSection').style.display = 'block';
+      document.getElementById('headerReqNotificationDot').style.display = 'none';
     };
 
-    window.returnToHelloPage = function() { 
-      document.getElementById('payrollAppSection').style.display = 'none'; 
-      document.getElementById('requisitionsAppSection').style.display = 'none'; 
-      document.getElementById('helloPageSection').style.display = 'block'; 
+    window.returnToHelloPage = function() {
+      document.getElementById('payrollAppSection').style.display = 'none';
+      document.getElementById('requisitionsAppSection').style.display = 'none';
+      document.getElementById('helloPageSection').style.display = 'block';
     };
 
-    window.openGenerateLinkModal = function() { 
-      document.getElementById('generatedLinkResultBox').style.display = 'none'; 
-      new bootstrap.Modal(document.getElementById('generateLinkModal')).show(); 
+    window.openGenerateLinkModal = function() {
+      document.getElementById('generatedLinkResultBox').style.display = 'none';
+      const modal = new bootstrap.Modal(document.getElementById('generateLinkModal'));
+      modal.show();
     };
 
     window.generateAndDisplayLink = function(e) {
@@ -411,7 +410,6 @@
       window.addDeptItemRow();
     }
 
-    // Realtime Firestore Listener
     function listenToRequisitions() {
       const reqRef = collection(db, "requisitions");
       const q = query(reqRef, orderBy("timestamp", "desc"));
@@ -510,7 +508,8 @@
         });
       }
 
-      new bootstrap.Modal(document.getElementById('viewRequisitionModal')).show();
+      const modal = new bootstrap.Modal(document.getElementById('viewRequisitionModal'));
+      modal.show();
     };
 
     window.updateReqStatus = async function(status) {
@@ -519,7 +518,9 @@
         const docRef = doc(db, "requisitions", currentDocId);
         await updateDoc(docRef, { status });
         alert(`Status changed to ${status}`);
-        bootstrap.Modal.getInstance(document.getElementById('viewRequisitionModal')).hide();
+        const modalEl = document.getElementById('viewRequisitionModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
       } catch (err) {
         alert('Error updating status: ' + err.message);
       }
