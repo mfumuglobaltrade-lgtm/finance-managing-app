@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Finance Managing App - Firebase Powered</title>
+  <title>Finance Managing App - Enterprise Edition</title>
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- SheetJS Library for Excel Export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
   <style>
     :root {
@@ -19,17 +21,30 @@
       --text-color: #333333;
     }
     body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 13px; min-height: 100vh; }
+    
+    /* Login Page Styling */
+    .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1B435D 0%, #0d212d 100%); padding: 20px; }
+    .login-card { background: #ffffff; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 100%; max-width: 420px; overflow: hidden; }
+    .login-card-header { background-color: var(--header-navy); color: #ffffff; padding: 25px 20px; text-align: center; }
+
     .hello-page-header { background: linear-gradient(135deg, #1B435D 0%, #0d212d 100%); color: #ffffff; padding: 30px 20px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); margin-bottom: 25px; }
     .hello-badge { background: rgba(255, 255, 255, 0.15); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: inline-block; }
     .app-main-title { font-size: 2rem; font-weight: 800; }
     .btn-payroll-trigger { background-color: var(--primary-orange); color: #ffffff; font-size: 1rem; font-weight: 700; padding: 10px 24px; border-radius: 8px; border: none; }
     .btn-requisitions-trigger { background-color: #6610f2; color: #ffffff; font-size: 1rem; font-weight: 700; padding: 10px 24px; border-radius: 8px; border: none; position: relative; }
+    .btn-register-trigger { background-color: #0d6efd; color: #ffffff; font-size: 1rem; font-weight: 700; padding: 10px 24px; border-radius: 8px; border: none; }
     .notification-dot { position: absolute; top: -4px; right: -4px; height: 14px; width: 14px; background-color: #dc3545; border-radius: 50%; border: 2px solid #ffffff; display: none; }
     .btn-back-nav { background-color: var(--header-navy); color: #ffffff; font-weight: 600; padding: 8px 16px; border-radius: 6px; border: none; }
     .top-controls { background-color: var(--card-bg); padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
     .table-container { background-color: var(--card-bg); border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto; }
+    
+    .excel-table th { background-color: #198754 !important; color: white !important; padding: 10px 12px; font-size: 12px; border: 1px solid #146c43; }
+    .excel-table td { padding: 10px 12px; white-space: nowrap; border: 1px solid #dee2e6; }
+    .excel-table tbody tr:hover { background-color: #e8f5e9 !important; }
+
     .requisition-table th { background-color: #6610f2 !important; color: white !important; padding: 10px 8px; font-size: 12px; }
-    .requisition-table td { padding: 8px 10px; white-space: nowrap; border-bottom: 1px solid #eee; }
+    .payroll-table th { background-color: #ED7D31 !important; color: white !important; padding: 10px 8px; font-size: 12px; }
+    .requisition-table td, .payroll-table td { padding: 8px 10px; white-space: nowrap; border-bottom: 1px solid #eee; }
     .req-row-link { color: #1a0dab; font-weight: 600; text-decoration: underline; cursor: pointer; }
     .req-doc-box { border: 2px solid var(--header-navy); padding: 25px; background: var(--card-bg); border-radius: 6px; }
     @media print { body * { visibility: hidden; } .printable-area, .printable-area * { visibility: visible; } .printable-area { position: absolute; left: 0; top: 0; width: 100%; } .no-print { display: none !important; } }
@@ -37,8 +52,42 @@
 </head>
 <body data-bs-theme="light">
 
+  <!-- LOGIN SECTION -->
+  <div id="loginSection" class="login-container">
+    <div class="login-card">
+      <div class="login-card-header text-center">
+        <i class="fa-solid fa-vault fa-3x text-warning mb-2"></i>
+        <h4 class="fw-bold mb-1">Enterprise Finance Portal</h4>
+        <p class="text-white-50 mb-0 small">Select department to enter</p>
+      </div>
+      <div class="p-4 bg-white">
+        <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Select Department</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="fa-solid fa-building text-secondary"></i></span>
+              <select class="form-select" id="loginDepartmentSelect" required>
+                <option value="" disabled selected>-- Select Department --</option>
+                <option value="Administrative Department">Administrative Department</option>
+                <option value="Tech Department">Tech Department</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-bold">Username / Staff Name</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="fa-solid fa-user text-secondary"></i></span>
+              <input type="text" class="form-control" id="loginUsername" placeholder="Enter your name..." required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-warning w-100 py-2 fw-bold text-dark fs-6 shadow-sm"><i class="fa-solid fa-right-to-bracket me-1"></i> ENTER PORTAL</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- Main Computer Dashboard -->
-  <div id="helloPageSection">
+  <div id="helloPageSection" style="display: none;">
     <header class="hello-page-header">
       <div class="container-fluid px-4">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
@@ -48,8 +97,17 @@
             <p class="text-white-50 mb-0 fs-6">Manage enterprise financial workflows, payroll schedules, and departmental purchase requisitions.</p>
           </div>
           <div class="d-flex align-items-center gap-3 flex-wrap">
-            <button class="btn btn-payroll-trigger" onclick="openPayrollApp()"><i class="fa-solid fa-calculator me-2"></i>PAYROLL</button>
-            <button class="btn btn-requisitions-trigger position-relative" onclick="openRequisitionsApp()"><i class="fa-solid fa-file-invoice me-2"></i>REQUISITIONS<span id="headerReqNotificationDot" class="notification-dot"></span></button>
+            <span class="badge bg-light text-dark p-2 me-2"><i class="fa-solid fa-user-gear me-1"></i><span id="activeUserBadge">Admin</span></span>
+            
+            <!-- Admin triggers -->
+            <button id="navPayrollBtn" class="btn btn-payroll-trigger" onclick="openPayrollApp()"><i class="fa-solid fa-calculator me-2"></i>PAYROLL</button>
+            <button id="navRequisitionsBtn" class="btn btn-requisitions-trigger position-relative" onclick="openRequisitionsApp()"><i class="fa-solid fa-file-invoice me-2"></i>REQUISITIONS<span id="headerReqNotificationDot" class="notification-dot"></span></button>
+            
+            <!-- Shared / Tech triggers -->
+            <button id="navEmployeeRegisterBtn" class="btn btn-register-trigger" onclick="openEmployeeRegisterApp()"><i class="fa-solid fa-address-book me-2"></i>EMPLOYEE REGISTER</button>
+            <button id="navTechAddEmpBtn" class="btn btn-warning fw-bold text-dark" onclick="openAddEmployeeModal()" style="display: none;"><i class="fa-solid fa-user-plus me-1"></i> Add Employee</button>
+
+            <button class="btn btn-outline-light btn-sm ms-2" onclick="handleLogout()"><i class="fa-solid fa-power-off"></i> Logout</button>
           </div>
         </div>
       </div>
@@ -58,21 +116,136 @@
       <div class="p-5 border rounded-3 bg-white shadow-sm">
         <i class="fa-solid fa-vault fa-4x text-secondary mb-3"></i>
         <h3 class="fw-bold">Welcome to Finance Managing App</h3>
-        <p class="text-muted mx-auto" style="max-width: 600px;">Click either <strong class="text-warning">PAYROLL</strong> or <strong style="color: #6610f2;">REQUISITIONS</strong> on the header above to open the respective management module.</p>
+        <p class="text-muted mx-auto" id="welcomeMsgDesc" style="max-width: 600px;">Click the navigation options above to access your modules.</p>
       </div>
     </div>
   </div>
 
-  <!-- Payroll Section -->
+  <!-- Employee Register Module (Excel Style) -->
+  <div id="employeeRegisterSection" style="display: none;">
+    <div class="container-fluid px-4 py-3">
+      <div class="top-controls d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-back-nav" onclick="returnToHelloPage()"><i class="fa-solid fa-arrow-left me-1"></i> Back</button>
+          <h3 class="fw-bold mb-0 text-success"><i class="fa-solid fa-file-excel me-2"></i>Master Employee Register</h3>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-success p-2"><i class="fa-solid fa-cloud-check me-1"></i> Real-time Cloud Synced</span>
+          <input type="text" class="form-control" id="registerSearchInput" placeholder="Search register..." oninput="renderEmployeeRegisterTable()" style="width: 250px;">
+        </div>
+      </div>
+
+      <div class="p-2 mb-2 bg-success-subtle text-success border border-success rounded">
+        <small class="fw-bold"><i class="fa-solid fa-circle-info me-1"></i> Excel View Mode: Double-click any employee row to open their full detailed information window.</small>
+      </div>
+
+      <div class="table-container">
+        <table class="table excel-table align-middle">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Full Name</th>
+              <th>Phone Number</th>
+              <th>Department</th>
+              <th>Job Title / Role</th>
+              <th>Contract Period</th>
+              <th id="registerActionsHeader" style="display: none;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="employeeRegisterTableBody">
+            <tr><td colspan="7" class="text-center py-4 text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i>Loading live database...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payroll Management Section -->
   <div id="payrollAppSection" style="display: none;">
     <div class="container-fluid px-4 py-3">
-      <div class="top-controls d-flex justify-content-between align-items-center">
-        <button class="btn btn-back-nav" onclick="returnToHelloPage()"><i class="fa-solid fa-arrow-left me-1"></i> Back</button>
-        <h3 class="fw-bold mb-0" style="color: #1B435D;">Payroll Management</h3>
-        <div></div>
+      <div class="top-controls d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-back-nav" onclick="returnToHelloPage()"><i class="fa-solid fa-arrow-left me-1"></i> Back</button>
+          <input type="text" class="form-control" id="payrollSearchInput" placeholder="Search employee..." oninput="filterPayrollTable()" style="width: 220px;">
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="badge bg-success p-2 me-1"><i class="fa-solid fa-cloud-check me-1"></i> Real-time Cloud Synced</span>
+          
+          <!-- Prepare Salaries Button -->
+          <button class="btn btn-success fw-bold text-white" onclick="exportSalariesToExcel()"><i class="fa-solid fa-file-excel me-1"></i> Prepare Salaries</button>
+          
+          <!-- Loan / Salary Advance Button -->
+          <button class="btn btn-primary fw-bold text-white" onclick="openLoanModal()"><i class="fa-solid fa-hand-holding-dollar me-1"></i> Loan / Salary Advance</button>
+        </div>
       </div>
-      <div class="p-4 bg-white border rounded shadow-sm text-center">
-        <p class="text-muted">Payroll module active. Use the navigation to manage employees and salaries.</p>
+
+      <div class="table-container">
+        <table class="table payroll-table align-middle">
+          <thead>
+            <tr>
+              <th>Employee Name</th>
+              <th>Employee Code</th>
+              <th>Job Description</th>
+              <th>Basic Salary</th>
+              <th>Housing Allowance</th>
+              <th>Gross Salary</th>
+              <th>NHIMA</th>
+              <th>NAPSA</th>
+              <th>Gratuity</th>
+              <th>Loan/Advance Deduction</th>
+              <th>Take-Home Pay</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="payrollTableBody">
+            <tr><td colspan="12" class="text-center py-4 text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i>Loading live database...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loan / Salary Advance Modal -->
+  <div class="modal fade" id="loanAdvanceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title fw-bold text-white"><i class="fa-solid fa-hand-holding-dollar me-2 text-warning"></i>Loan & Salary Advance Entry</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form onsubmit="saveLoanAdvance(event)">
+            <div class="mb-3">
+              <label class="form-label fw-bold">Select Employee</label>
+              <select class="form-select" id="loanEmpSelect" required>
+                <option value="" disabled selected>-- Select Employee --</option>
+              </select>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-6">
+                <label class="form-label fw-bold">Total Amount Issued (ZMW)</label>
+                <input type="number" step="0.01" min="0" class="form-control" id="loanAmount" placeholder="e.g. 5000.00" oninput="calculateLoanRepayment()" required>
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-bold">Monthly Deduction (ZMW)</label>
+                <input type="number" step="0.01" min="0" class="form-control" id="loanMonthly" placeholder="e.g. 1000.00" oninput="calculateLoanRepayment()" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-bold">Month End Deductions Start From</label>
+              <select class="form-select" id="loanStartMonth" onchange="calculateLoanRepayment()" required></select>
+            </div>
+
+            <div class="p-3 bg-light border rounded mb-3">
+              <small class="text-muted d-block fw-bold">Repayment Summary:</small>
+              <h6 class="fw-bold text-success mb-0 mt-1" id="loanRepaymentSummary">Enter loan details above...</h6>
+            </div>
+
+            <button type="submit" id="saveLoanBtn" class="btn btn-primary w-100 fw-bold py-2"><i class="fa-solid fa-floppy-disk me-1"></i> Apply Loan / Advance Deduction</button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
@@ -180,6 +353,242 @@
     </div>
   </div>
 
+  <!-- Add / Edit Employee Modal -->
+  <div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--header-navy); color: white;">
+          <h5 class="modal-title fw-bold text-white"><i class="fa-solid fa-user-plus me-2 text-warning"></i><span id="empModalTitle">Add New Employee</span></h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form onsubmit="saveEmployeeToFirebase(event)">
+            <input type="hidden" id="editEmpDocId" value="">
+            
+            <h6 class="text-primary fw-bold border-bottom pb-1 mb-3"><i class="fa-solid fa-user me-1"></i> Personal Information</h6>
+            <div class="row mb-3">
+              <div class="col-md-3">
+                <label class="form-label fw-bold">First Name</label>
+                <input type="text" class="form-control" id="empName" placeholder="e.g. Bishop" required>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label fw-bold">Surname</label>
+                <input type="text" class="form-control" id="empSurname" placeholder="e.g. Choongwa" required>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label fw-bold">Department</label>
+                <select class="form-select" id="empDepartment" required>
+                  <option value="Administrative Department">Administrative Department</option>
+                  <option value="Tech Department">Tech Department</option>
+                  <option value="Finance & Accounts">Finance & Accounts</option>
+                  <option value="Operations & Logistics">Operations & Logistics</option>
+                  <option value="Pastoral & Clergy">Pastoral & Clergy</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label fw-bold">Employee Code</label>
+                <input type="text" class="form-control" id="empCode" placeholder="GEC-01-BC" required>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-3">
+                <label class="form-label fw-bold">Date of Birth</label>
+                <input type="date" class="form-control" id="empDob" onchange="calcAgeFromDob()" required>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label fw-bold">Age</label>
+                <input type="text" class="form-control bg-light" id="empAge" readonly>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label fw-bold">Sex</label>
+                <select class="form-select" id="empSex" required>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-bold">Marital Status</label>
+                <select class="form-select" id="empMarital" required>
+                  <option value="Single">Single</option>
+                  <option value="Married">Married</option>
+                  <option value="Divorced">Divorced</option>
+                  <option value="Widowed">Widowed</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-3">
+                <label class="form-label fw-bold">No. of Children</label>
+                <input type="number" min="0" class="form-control" id="empChildren" value="0">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label fw-bold">Phone Number</label>
+                <input type="text" class="form-control" id="empPhone" placeholder="+260..." required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Email Address</label>
+                <input type="email" class="form-control" id="empEmail" placeholder="staff@example.com" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-bold">Physical Address</label>
+              <input type="text" class="form-control" id="empAddress" placeholder="Plot, Street, City..." required>
+            </div>
+
+            <h6 class="text-primary fw-bold border-bottom pb-1 mb-3 mt-4"><i class="fa-solid fa-users me-1"></i> Next of Kin Details</h6>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Next of Kin Name</label>
+                <input type="text" class="form-control" id="nokName" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Relationship</label>
+                <input type="text" class="form-control" id="nokRelation" placeholder="e.g. Spouse, Parent" required>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label fw-bold">Next of Kin Phone</label>
+                <input type="text" class="form-control" id="nokPhone" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-bold">Next of Kin Email</label>
+                <input type="email" class="form-control" id="nokEmail">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-bold">Next of Kin Address</label>
+                <input type="text" class="form-control" id="nokAddress">
+              </div>
+            </div>
+
+            <h6 class="text-primary fw-bold border-bottom pb-1 mb-3 mt-4"><i class="fa-solid fa-briefcase me-1"></i> Contract & Salary Configuration</h6>
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label fw-bold">Job Title / Description</label>
+                <input type="text" class="form-control" id="empRole" placeholder="Senior Pastor / Bishop" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-bold">Contract Start Date</label>
+                <input type="date" class="form-control" id="empContractStart" onchange="calcContractEnd()" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-bold">Contract End Date (24 Months)</label>
+                <input type="date" class="form-control bg-light" id="empContractEnd" readonly>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-bold">Basic Salary (ZMW)</label>
+              <input type="number" step="0.01" min="0" class="form-control" id="empBasic" placeholder="11056.10" oninput="autoCalculateFormFields()" required>
+            </div>
+
+            <!-- Privileges & Benefits with Checkboxes -->
+            <div class="p-3 bg-light border rounded mb-3">
+              <label class="form-label fw-bold text-dark mb-2">Benefit & Statutory Privileges (Check to Apply):</label>
+              
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="chkHousing" checked onchange="autoCalculateFormFields()">
+                    <label class="form-check-label fw-bold" for="chkHousing">Housing Allowance (30%)</label>
+                  </div>
+                  <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="empHousing" readonly>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="chkNhima" checked onchange="autoCalculateFormFields()">
+                    <label class="form-check-label fw-bold" for="chkNhima">NHIMA Deduction (1%)</label>
+                  </div>
+                  <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="empNhima" readonly>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="chkNapsa" checked onchange="autoCalculateFormFields()">
+                    <label class="form-check-label fw-bold" for="chkNapsa">NAPSA Deduction (5%)</label>
+                  </div>
+                  <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="empNapsa" readonly>
+                </div>
+              </div>
+
+              <div class="row g-3 mt-2">
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="chkZra" checked>
+                    <label class="form-check-label fw-bold" for="chkZra">ZRA Tax Compliance</label>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="chkGratuity" checked onchange="autoCalculateFormFields()">
+                    <label class="form-check-label fw-bold" for="chkGratuity">Gratuity (25% of 24 mos basic)</label>
+                  </div>
+                  <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="empGratuity" readonly>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" id="saveEmpSubmitBtn" class="btn btn-success w-100 fw-bold py-2"><i class="fa-solid fa-floppy-disk me-1"></i> Save Employee Record to Cloud</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full Employee Profile Modal -->
+  <div class="modal fade" id="viewEmployeeProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--header-navy); color: white;">
+          <h5 class="modal-title fw-bold text-white"><i class="fa-solid fa-id-card me-2 text-warning"></i>Full Employee Record</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4 bg-light">
+          <div class="p-3 bg-white border rounded shadow-sm mb-3">
+            <h6 class="fw-bold text-primary border-bottom pb-2 mb-3"><i class="fa-solid fa-user me-1"></i> Personal Profile</h6>
+            <div class="row g-3">
+              <div class="col-md-6"><strong>Full Name:</strong> <span id="profName"></span></div>
+              <div class="col-md-6"><strong>Employee Code:</strong> <span id="profCode" class="badge bg-secondary"></span></div>
+              <div class="col-md-6"><strong>Department:</strong> <span id="profDept"></span></div>
+              <div class="col-md-6"><strong>Job Designation:</strong> <span id="profRole"></span></div>
+              <div class="col-md-6"><strong>Date of Birth / Age:</strong> <span id="profDobAge"></span></div>
+              <div class="col-md-6"><strong>Sex / Marital Status:</strong> <span id="profSexMarital"></span></div>
+              <div class="col-md-6"><strong>Children:</strong> <span id="profChildren"></span></div>
+              <div class="col-md-6"><strong>Phone:</strong> <span id="profPhone"></span></div>
+              <div class="col-md-6"><strong>Email:</strong> <span id="profEmail"></span></div>
+              <div class="col-md-6"><strong>Physical Address:</strong> <span id="profAddress"></span></div>
+            </div>
+          </div>
+
+          <div class="p-3 bg-white border rounded shadow-sm mb-3">
+            <h6 class="fw-bold text-primary border-bottom pb-2 mb-3"><i class="fa-solid fa-users me-1"></i> Next of Kin Information</h6>
+            <div class="row g-3">
+              <div class="col-md-6"><strong>Next of Kin Name:</strong> <span id="profNokName"></span></div>
+              <div class="col-md-6"><strong>Relationship:</strong> <span id="profNokRelation"></span></div>
+              <div class="col-md-6"><strong>Phone:</strong> <span id="profNokPhone"></span></div>
+              <div class="col-md-6"><strong>Email:</strong> <span id="profNokEmail"></span></div>
+              <div class="col-md-12"><strong>Address:</strong> <span id="profNokAddress"></span></div>
+            </div>
+          </div>
+
+          <div class="p-3 bg-white border rounded shadow-sm">
+            <h6 class="fw-bold text-primary border-bottom pb-2 mb-3"><i class="fa-solid fa-briefcase me-1"></i> Contract & Salary Structure</h6>
+            <div class="row g-3">
+              <div class="col-md-6"><strong>Contract Period:</strong> <span id="profContract"></span></div>
+              <div class="col-md-6"><strong>Basic Salary:</strong> <span id="profBasic" class="fw-bold text-dark"></span></div>
+              <div class="col-md-12"><strong>Active Benefits & Allowances:</strong> <p id="profPrivileges" class="mb-0 text-muted small"></p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Generate Link Modal -->
   <div class="modal fade" id="generateLinkModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -218,6 +627,62 @@
             <p class="small text-muted mb-0">Share this link to phones or department computers.</p>
           </div>
           <div id="copySuccessMsg" class="text-success small fw-bold mt-2" style="display: none;">Link copied to clipboard!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Payslip Modal -->
+  <div class="modal fade" id="viewPayslipModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-receipt me-2 text-success"></i>Official Employee Payslip</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body printable-area">
+          <div class="p-4 border rounded bg-white">
+            <div class="d-flex justify-content-between border-bottom pb-3 mb-3">
+              <div>
+                <h4 class="fw-bold text-navy mb-0">Gospel Enterprise Church</h4>
+                <small class="text-muted">Staff Salary Payslip</small>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-secondary" id="psEmpCode"></span><br>
+                <small class="text-muted" id="psContractDates"></small>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-6">
+                <p class="mb-1"><strong>Full Name:</strong> <span id="psEmpName"></span></p>
+                <p class="mb-1"><strong>Department:</strong> <span id="psEmpDept"></span></p>
+              </div>
+              <div class="col-6 text-end">
+                <p class="mb-1"><strong>Job Description:</strong> <span id="psEmpRole"></span></p>
+                <p class="mb-1"><strong>Phone / Email:</strong> <span id="psContact"></span></p>
+              </div>
+            </div>
+
+            <table class="table table-bordered mb-3">
+              <tr class="table-light"><th>Earnings & Allowances</th><th class="text-end">Amount (ZMW)</th></tr>
+              <tr><td>Basic Salary</td><td class="text-end fw-bold" id="psBasic"></td></tr>
+              <tr><td>Housing Allowance (30%)</td><td class="text-end fw-bold" id="psHousing"></td></tr>
+              <tr class="table-secondary"><td><strong>Gross Salary</strong></td><td class="text-end fw-bold text-primary" id="psGross"></td></tr>
+              
+              <tr class="table-light"><th>Statutory Deductions & Loan Repayments</th><th class="text-end">Amount (ZMW)</th></tr>
+              <tr><td>NHIMA Deduction (1% of Basic)</td><td class="text-end text-danger" id="psNhima"></td></tr>
+              <tr><td>NAPSA Deduction (5% of Gross)</td><td class="text-end text-danger" id="psNapsa"></td></tr>
+              <tr><td>Loan / Salary Advance Monthly Deduction</td><td class="text-end text-danger fw-bold" id="psLoan">ZMW 0.00</td></tr>
+              <tr><td>Projected Gratuity (25% of 24 mos basic)</td><td class="text-end text-success fw-bold" id="psGratuity"></td></tr>
+              
+              <tr class="table-success"><td class="fw-bold">TAKE-HOME NET PAY</td><td class="text-end text-success fw-bold fs-6" id="psTakeHome"></td></tr>
+            </table>
+
+            <div class="no-print mt-3 text-end">
+              <button class="btn btn-outline-dark btn-sm fw-bold" onclick="window.print()"><i class="fa-solid fa-print me-1"></i> Print Payslip</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -272,9 +737,10 @@
       getFirestore, 
       collection, 
       addDoc, 
-      onSnapshot, 
       doc, 
       updateDoc, 
+      deleteDoc,
+      onSnapshot, 
       query, 
       orderBy 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -293,35 +759,579 @@
     const db = getFirestore(app);
 
     let allRequisitions = [];
+    let payrollData = []; 
+    let loggedInDepartment = '';
+    
     let currentDocId = null;
     let isDepartmentPortal = false;
     let currentDept = '';
     let currentRole = '';
 
-    // Attach all click/submit triggers explicitly to window scope
+    // LOGIN & LOGOUT LOGIC
+    window.handleLoginSubmit = function(e) {
+      e.preventDefault();
+      loggedInDepartment = document.getElementById('loginDepartmentSelect').value;
+      const user = document.getElementById('loginUsername').value;
+
+      document.getElementById('activeUserBadge').textContent = `${loggedInDepartment} (${user})`;
+      
+      if (loggedInDepartment === 'Tech Department') {
+        document.getElementById('navPayrollBtn').style.display = 'none';
+        document.getElementById('navRequisitionsBtn').style.display = 'none';
+        document.getElementById('navEmployeeRegisterBtn').style.display = 'inline-block';
+        document.getElementById('navTechAddEmpBtn').style.display = 'inline-block';
+        document.getElementById('welcomeMsgDesc').textContent = 'Tech Department Portal. Use "Employee Register" or "Add Employee" to manage staff records.';
+      } else {
+        document.getElementById('navPayrollBtn').style.display = 'inline-block';
+        document.getElementById('navRequisitionsBtn').style.display = 'inline-block';
+        document.getElementById('navEmployeeRegisterBtn').style.display = 'inline-block';
+        document.getElementById('navTechAddEmpBtn').style.display = 'none';
+        document.getElementById('welcomeMsgDesc').textContent = 'Administrative Portal. Access Payroll, Requisitions Hub, or Employee Register.';
+      }
+
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('helloPageSection').style.display = 'block';
+    };
+
+    window.handleLogout = function() {
+      document.getElementById('employeeRegisterSection').style.display = 'none';
+      document.getElementById('payrollAppSection').style.display = 'none';
+      document.getElementById('requisitionsAppSection').style.display = 'none';
+      document.getElementById('helloPageSection').style.display = 'none';
+      document.getElementById('loginSection').style.display = 'flex';
+      document.getElementById('loginForm').reset();
+    };
+
+    // Navigation Handlers
+    window.openEmployeeRegisterApp = function() {
+      document.getElementById('helloPageSection').style.display = 'none';
+      document.getElementById('payrollAppSection').style.display = 'none';
+      document.getElementById('requisitionsAppSection').style.display = 'none';
+      document.getElementById('employeeRegisterSection').style.display = 'block';
+      renderEmployeeRegisterTable();
+    };
+
     window.openPayrollApp = function() {
       document.getElementById('helloPageSection').style.display = 'none';
+      document.getElementById('employeeRegisterSection').style.display = 'none';
       document.getElementById('requisitionsAppSection').style.display = 'none';
       document.getElementById('payrollAppSection').style.display = 'block';
+      renderPayrollTable();
     };
 
     window.openRequisitionsApp = function() {
       document.getElementById('helloPageSection').style.display = 'none';
+      document.getElementById('employeeRegisterSection').style.display = 'none';
       document.getElementById('payrollAppSection').style.display = 'none';
       document.getElementById('requisitionsAppSection').style.display = 'block';
       document.getElementById('headerReqNotificationDot').style.display = 'none';
     };
 
     window.returnToHelloPage = function() {
+      document.getElementById('employeeRegisterSection').style.display = 'none';
       document.getElementById('payrollAppSection').style.display = 'none';
       document.getElementById('requisitionsAppSection').style.display = 'none';
       document.getElementById('helloPageSection').style.display = 'block';
     };
 
+    // REAL-TIME FIRESTORE SYNCHRONIZATION FOR EMPLOYEES
+    function listenToEmployees() {
+      const empRef = collection(db, "employees");
+      const q = query(empRef, orderBy("timestamp", "desc"));
+
+      onSnapshot(q, (snapshot) => {
+        payrollData = [];
+        snapshot.forEach((docSnap) => {
+          payrollData.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        renderEmployeeRegisterTable();
+        renderPayrollTable();
+      }, (error) => {
+        console.error("Firestore employees sync error:", error);
+      });
+    }
+
+    // Employee Register Render
+    window.renderEmployeeRegisterTable = function() {
+      const tbody = document.getElementById('employeeRegisterTableBody');
+      tbody.innerHTML = '';
+      const filter = (document.getElementById('registerSearchInput').value || '').toLowerCase();
+
+      const actionsHeader = document.getElementById('registerActionsHeader');
+      if (loggedInDepartment === 'Tech Department') {
+        actionsHeader.style.display = 'table-cell';
+      } else {
+        actionsHeader.style.display = 'none';
+      }
+
+      const filtered = payrollData.filter(emp => 
+        (emp.name + ' ' + (emp.surname || '')).toLowerCase().includes(filter) || 
+        (emp.department || '').toLowerCase().includes(filter) || 
+        emp.role.toLowerCase().includes(filter) ||
+        (emp.phone || '').toLowerCase().includes(filter)
+      );
+
+      if (filtered.length === 0) {
+        const colSpan = loggedInDepartment === 'Tech Department' ? 7 : 6;
+        tbody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-4 text-muted">No registered employees found in cloud database.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach((emp, idx) => {
+        let actionCellHtml = '';
+        if (loggedInDepartment === 'Tech Department') {
+          actionCellHtml = `<td><button class="btn btn-sm btn-outline-danger py-1 px-2" onclick="deleteEmployee('${emp.id}', '${emp.name} ${emp.surname || ''}')"><i class="fa-solid fa-trash-can me-1"></i> Delete</button></td>`;
+        }
+
+        tbody.innerHTML += `
+          <tr ondblclick="openEmployeeFullProfile('${emp.id}')">
+            <td class="fw-bold text-muted">${idx + 1}</td>
+            <td class="fw-bold text-navy">${emp.name} ${emp.surname || ''}</td>
+            <td><i class="fa-solid fa-phone me-1 text-secondary"></i>${emp.phone || 'N/A'}</td>
+            <td><span class="badge bg-light text-dark border">${emp.department || 'General'}</span></td>
+            <td class="fw-bold text-primary">${emp.role}</td>
+            <td>${emp.startContract || 'N/A'} to ${emp.endContract || 'N/A'}</td>
+            ${actionCellHtml}
+          </tr>
+        `;
+      });
+    };
+
+    window.deleteEmployee = async function(docId, empName) {
+      if (loggedInDepartment !== 'Tech Department') {
+        alert('Permission Denied: Only the Tech Department can remove employee records.');
+        return;
+      }
+
+      if (confirm(`Are you sure you want to permanently delete "${empName}" from the enterprise database?`)) {
+        try {
+          await deleteDoc(doc(db, "employees", docId));
+          alert(`Employee "${empName}" has been successfully removed.`);
+        } catch (err) {
+          alert('Error deleting employee: ' + err.message);
+        }
+      }
+    };
+
+    window.openEmployeeFullProfile = function(docId) {
+      const emp = payrollData.find(e => e.id === docId);
+      if (!emp) return;
+
+      document.getElementById('profName').textContent = `${emp.name} ${emp.surname || ''}`;
+      document.getElementById('profCode').textContent = emp.code;
+      document.getElementById('profDept').textContent = emp.department || 'N/A';
+      document.getElementById('profRole').textContent = emp.role;
+      document.getElementById('profDobAge').textContent = `${emp.dob || 'N/A'} (${emp.age || 'N/A'} years old)`;
+      document.getElementById('profSexMarital').textContent = `${emp.sex || 'N/A'} / ${emp.marital || 'N/A'}`;
+      document.getElementById('profChildren').textContent = emp.children || '0';
+      document.getElementById('profPhone').textContent = emp.phone || 'N/A';
+      document.getElementById('profEmail').textContent = emp.email || 'N/A';
+      document.getElementById('profAddress').textContent = emp.address || 'N/A';
+
+      document.getElementById('profNokName').textContent = emp.nokName || 'N/A';
+      document.getElementById('profNokRelation').textContent = emp.nokRelation || 'N/A';
+      document.getElementById('profNokPhone').textContent = emp.nokPhone || 'N/A';
+      document.getElementById('profNokEmail').textContent = emp.nokEmail || 'N/A';
+      document.getElementById('profNokAddress').textContent = emp.nokAddress || 'N/A';
+
+      document.getElementById('profContract').textContent = `${emp.startContract || 'N/A'} to ${emp.endContract || 'N/A'} (24 Months)`;
+      document.getElementById('profBasic').textContent = 'ZMW ' + (emp.basic || 0).toLocaleString('en-US', {minimumFractionDigits: 2});
+
+      let privs = [];
+      if (emp.hasHousing) privs.push('Housing Allowance (30%)');
+      if (emp.hasNhima) privs.push('NHIMA (1%)');
+      if (emp.hasNapsa) privs.push('NAPSA (5%)');
+      if (emp.hasZra) privs.push('ZRA Compliant');
+      if (emp.hasGratuity) privs.push('Gratuity (25% of 24 mos basic)');
+      if (emp.loanMonthly > 0) privs.push(`Active Loan Deduction: ZMW ${emp.loanMonthly.toFixed(2)}/mo`);
+
+      document.getElementById('profPrivileges').textContent = privs.length > 0 ? privs.join(' • ') : 'No special privileges selected.';
+
+      new bootstrap.Modal(document.getElementById('viewEmployeeProfileModal')).show();
+    };
+
+    // LOAN & SALARY ADVANCE MANAGEMENT
+    window.openLoanModal = function() {
+      const empSelect = document.getElementById('loanEmpSelect');
+      empSelect.innerHTML = '<option value="" disabled selected>-- Select Employee --</option>';
+
+      payrollData.forEach(emp => {
+        empSelect.innerHTML += `<option value="${emp.id}">${emp.name} ${emp.surname || ''} (${emp.code})</option>`;
+      });
+
+      // Populate Start Month Dropdown with future 12 months
+      const monthSelect = document.getElementById('loanStartMonth');
+      monthSelect.innerHTML = '';
+      const now = new Date();
+      for (let i = 0; i < 12; i++) {
+        const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        const label = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+        const val = date.toISOString().slice(0, 7);
+        monthSelect.innerHTML += `<option value="${val}">${label}</option>`;
+      }
+
+      document.getElementById('loanAmount').value = '';
+      document.getElementById('loanMonthly').value = '';
+      document.getElementById('loanRepaymentSummary').textContent = 'Enter loan details above...';
+
+      new bootstrap.Modal(document.getElementById('loanAdvanceModal')).show();
+    };
+
+    window.calculateLoanRepayment = function() {
+      const amount = parseFloat(document.getElementById('loanAmount').value) || 0;
+      const monthly = parseFloat(document.getElementById('loanMonthly').value) || 0;
+      const startVal = document.getElementById('loanStartMonth').value;
+      const summaryEl = document.getElementById('loanRepaymentSummary');
+
+      if (amount <= 0 || monthly <= 0 || !startVal) {
+        summaryEl.textContent = 'Enter valid loan amount and monthly payment...';
+        return;
+      }
+
+      const monthsCount = Math.ceil(amount / monthly);
+      const startDate = new Date(startVal + '-01');
+      const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + monthsCount - 1, 1);
+      const endMonthLabel = endDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+
+      summaryEl.textContent = `Loan will take ${monthsCount} month(s) to clear. (Fully paid by month end of ${endMonthLabel})`;
+    };
+
+    window.saveLoanAdvance = async function(e) {
+      e.preventDefault();
+      const docId = document.getElementById('loanEmpSelect').value;
+      const amount = parseFloat(document.getElementById('loanAmount').value) || 0;
+      const monthly = parseFloat(document.getElementById('loanMonthly').value) || 0;
+      const startVal = document.getElementById('loanStartMonth').value;
+
+      if (!docId) {
+        alert('Please select an employee.');
+        return;
+      }
+
+      const saveBtn = document.getElementById('saveLoanBtn');
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-1"></i> SAVING LOAN...`;
+
+      try {
+        const docRef = doc(db, "employees", docId);
+        await updateDoc(docRef, {
+          loanAmount: amount,
+          loanMonthly: monthly,
+          loanStartMonth: startVal
+        });
+        alert('Loan / Salary Advance successfully saved and applied to payroll!');
+        bootstrap.Modal.getInstance(document.getElementById('loanAdvanceModal')).hide();
+      } catch (err) {
+        alert('Error saving loan details: ' + err.message);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Apply Loan / Advance Deduction`;
+      }
+    };
+
+    // EXPORT SALARIES TO EXCEL
+    window.exportSalariesToExcel = function() {
+      if (payrollData.length === 0) {
+        alert('No employee salary data available to export.');
+        return;
+      }
+
+      const excelRows = payrollData.map(emp => {
+        const basic = Number(emp.basic) || 0;
+        const housing = emp.hasHousing ? (basic * 0.30) : 0;
+        const gross = basic + housing;
+        const nhima = emp.hasNhima ? (basic * 0.01) : 0;
+        const napsa = emp.hasNapsa ? (gross * 0.05) : 0;
+        const loanDeduction = Number(emp.loanMonthly) || 0;
+        const takeHome = gross - nhima - napsa - loanDeduction;
+
+        return {
+          "Employee Name": `${emp.name} ${emp.surname || ''}`.trim(),
+          "Job Description": emp.role || 'N/A',
+          "Basic Salary": basic,
+          "Housing Allowance": housing,
+          "Gross Salary": gross,
+          "NHIMA": nhima,
+          "NAPSA": napsa,
+          "loan/ salary advance deduction": loanDeduction,
+          "Take-Home Pay": takeHome
+        };
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(excelRows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Salaries Schedule");
+
+      // Auto-size column widths
+      const colWidths = [
+        { wch: 25 }, { wch: 25 }, { wch: 15 }, { wch: 18 },
+        { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 30 }, { wch: 16 }
+      ];
+      worksheet['!cols'] = colWidths;
+
+      XLSX.writeFile(workbook, `Enterprise_Payroll_Salaries_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    };
+
+    // Auto Calculations inside Employee Form
+    window.calcAgeFromDob = function() {
+      const dobVal = document.getElementById('empDob').value;
+      if (!dobVal) return;
+      const dobDate = new Date(dobVal);
+      const diff = Date.now() - dobDate.getTime();
+      const ageDate = new Date(diff);
+      const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+      document.getElementById('empAge').value = age;
+    };
+
+    window.calcContractEnd = function() {
+      const startVal = document.getElementById('empContractStart').value;
+      if (!startVal) return;
+      let startDate = new Date(startVal);
+      startDate.setMonth(startDate.getMonth() + 24);
+      document.getElementById('empContractEnd').value = startDate.toISOString().slice(0, 10);
+    };
+
+    window.autoCalculateFormFields = function() {
+      const basic = parseFloat(document.getElementById('empBasic').value) || 0;
+      
+      const hasHousing = document.getElementById('chkHousing').checked;
+      const housing = hasHousing ? (basic * 0.30) : 0;
+      document.getElementById('empHousing').value = housing.toFixed(2);
+
+      const hasNhima = document.getElementById('chkNhima').checked;
+      const nhima = hasNhima ? (basic * 0.01) : 0;
+      document.getElementById('empNhima').value = nhima.toFixed(2);
+
+      const gross = basic + housing;
+      const hasNapsa = document.getElementById('chkNapsa').checked;
+      const napsa = hasNapsa ? (gross * 0.05) : 0;
+      document.getElementById('empNapsa').value = napsa.toFixed(2);
+
+      const hasGratuity = document.getElementById('chkGratuity').checked;
+      const gratuity = hasGratuity ? (basic * 24 * 0.25) : 0;
+      document.getElementById('empGratuity').value = gratuity.toFixed(2);
+    };
+
+    // Payroll Table Render
+    window.openAddEmployeeModal = function() {
+      document.getElementById('editEmpDocId').value = '';
+      document.getElementById('empModalTitle').textContent = 'Add New Employee (Tech Cloud Portal)';
+      document.getElementById('empName').value = '';
+      document.getElementById('empSurname').value = '';
+      document.getElementById('empDepartment').value = 'Administrative Department';
+      document.getElementById('empCode').value = 'GEC-' + Math.floor(10 + Math.random() * 90) + '-XX';
+      document.getElementById('empRole').value = '';
+      document.getElementById('empDob').value = '';
+      document.getElementById('empAge').value = '';
+      document.getElementById('empPhone').value = '';
+      document.getElementById('empEmail').value = '';
+      document.getElementById('empAddress').value = '';
+      document.getElementById('nokName').value = '';
+      document.getElementById('nokRelation').value = '';
+      document.getElementById('nokPhone').value = '';
+      document.getElementById('nokEmail').value = '';
+      document.getElementById('nokAddress').value = '';
+      document.getElementById('empContractStart').value = '';
+      document.getElementById('empContractEnd').value = '';
+      document.getElementById('empBasic').value = '';
+      document.getElementById('chkHousing').checked = true;
+      document.getElementById('chkNhima').checked = true;
+      document.getElementById('chkNapsa').checked = true;
+      document.getElementById('chkZra').checked = true;
+      document.getElementById('chkGratuity').checked = true;
+      autoCalculateFormFields();
+      new bootstrap.Modal(document.getElementById('addEmployeeModal')).show();
+    };
+
+    window.editEmployee = function(docId) {
+      if (loggedInDepartment !== 'Tech Department') {
+        alert('Permission Denied: Employee details can only be edited from the Tech Department.');
+        return;
+      }
+
+      const emp = payrollData.find(e => e.id === docId);
+      if (!emp) return;
+
+      document.getElementById('editEmpDocId').value = docId;
+      document.getElementById('empModalTitle').textContent = 'Edit Employee Record (Tech Cloud Portal)';
+      document.getElementById('empName').value = emp.name;
+      document.getElementById('empSurname').value = emp.surname || '';
+      document.getElementById('empDepartment').value = emp.department || 'Administrative Department';
+      document.getElementById('empCode').value = emp.code;
+      document.getElementById('empRole').value = emp.role;
+      document.getElementById('empDob').value = emp.dob || '';
+      calcAgeFromDob();
+      document.getElementById('empSex').value = emp.sex || 'Male';
+      document.getElementById('empMarital').value = emp.marital || 'Single';
+      document.getElementById('empChildren').value = emp.children || 0;
+      document.getElementById('empPhone').value = emp.phone || '';
+      document.getElementById('empEmail').value = emp.email || '';
+      document.getElementById('empAddress').value = emp.address || '';
+      document.getElementById('nokName').value = emp.nokName || '';
+      document.getElementById('nokRelation').value = emp.nokRelation || '';
+      document.getElementById('nokPhone').value = emp.nokPhone || '';
+      document.getElementById('nokEmail').value = emp.nokEmail || '';
+      document.getElementById('nokAddress').value = emp.nokAddress || '';
+      document.getElementById('empContractStart').value = emp.startContract || '';
+      document.getElementById('empContractEnd').value = emp.endContract || '';
+      document.getElementById('empBasic').value = emp.basic;
+      
+      document.getElementById('chkHousing').checked = emp.hasHousing ?? true;
+      document.getElementById('chkNhima').checked = emp.hasNhima ?? true;
+      document.getElementById('chkNapsa').checked = emp.hasNapsa ?? true;
+      document.getElementById('chkZra').checked = emp.hasZra ?? true;
+      document.getElementById('chkGratuity').checked = emp.hasGratuity ?? true;
+      
+      autoCalculateFormFields();
+      new bootstrap.Modal(document.getElementById('addEmployeeModal')).show();
+    };
+
+    window.saveEmployeeToFirebase = async function(e) {
+      e.preventDefault();
+      const docId = document.getElementById('editEmpDocId').value;
+      const submitBtn = document.getElementById('saveEmpSubmitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-1"></i> SYNCING TO CLOUD...`;
+
+      const empObj = {
+        name: document.getElementById('empName').value,
+        surname: document.getElementById('empSurname').value,
+        department: document.getElementById('empDepartment').value,
+        code: document.getElementById('empCode').value,
+        role: document.getElementById('empRole').value,
+        dob: document.getElementById('empDob').value,
+        age: document.getElementById('empAge').value,
+        sex: document.getElementById('empSex').value,
+        marital: document.getElementById('empMarital').value,
+        children: document.getElementById('empChildren').value,
+        phone: document.getElementById('empPhone').value,
+        email: document.getElementById('empEmail').value,
+        address: document.getElementById('empAddress').value,
+        nokName: document.getElementById('nokName').value,
+        nokRelation: document.getElementById('nokRelation').value,
+        nokPhone: document.getElementById('nokPhone').value,
+        nokEmail: document.getElementById('nokEmail').value,
+        nokAddress: document.getElementById('nokAddress').value,
+        startContract: document.getElementById('empContractStart').value,
+        endContract: document.getElementById('empContractEnd').value,
+        basic: parseFloat(document.getElementById('empBasic').value) || 0,
+        hasHousing: document.getElementById('chkHousing').checked,
+        hasNhima: document.getElementById('chkNhima').checked,
+        hasNapsa: document.getElementById('chkNapsa').checked,
+        hasZra: document.getElementById('chkZra').checked,
+        hasGratuity: document.getElementById('chkGratuity').checked,
+        timestamp: Date.now()
+      };
+
+      try {
+        if (!docId) {
+          await addDoc(collection(db, "employees"), empObj);
+          alert('Employee successfully added and synced to Cloud database!');
+        } else {
+          const docRef = doc(db, "employees", docId);
+          await updateDoc(docRef, empObj);
+          alert('Employee record successfully updated and synced across offices!');
+        }
+        bootstrap.Modal.getInstance(document.getElementById('addEmployeeModal')).hide();
+      } catch (err) {
+        alert('Cloud sync error: ' + err.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Save Employee Record to Cloud`;
+      }
+    };
+
+    window.openPayslip = function(docId) {
+      const emp = payrollData.find(e => e.id === docId);
+      if (!emp) return;
+
+      const basic = Number(emp.basic) || 0;
+      const housing = emp.hasHousing ? (basic * 0.30) : 0;
+      const gross = basic + housing;
+      const nhima = emp.hasNhima ? (basic * 0.01) : 0;
+      const napsa = emp.hasNapsa ? (gross * 0.05) : 0;
+      const loan = Number(emp.loanMonthly) || 0;
+      const gratuity = emp.hasGratuity ? (basic * 24 * 0.25) : 0;
+      const takeHome = gross - nhima - napsa - loan;
+
+      document.getElementById('psEmpCode').textContent = emp.code;
+      document.getElementById('psContractDates').textContent = `Contract: ${emp.startContract || 'N/A'} to ${emp.endContract || 'N/A'}`;
+      document.getElementById('psEmpName').textContent = `${emp.name} ${emp.surname || ''}`;
+      document.getElementById('psEmpDept').textContent = emp.department || 'Administrative Department';
+      document.getElementById('psEmpRole').textContent = emp.role;
+      document.getElementById('psContact').textContent = `${emp.phone || ''} | ${emp.email || ''}`;
+
+      document.getElementById('psBasic').textContent = 'ZMW ' + basic.toLocaleString('en-US', {minimumFractionDigits: 2});
+      document.getElementById('psHousing').textContent = 'ZMW ' + housing.toLocaleString('en-US', {minimumFractionDigits: 2});
+      document.getElementById('psGross').textContent = 'ZMW ' + gross.toLocaleString('en-US', {minimumFractionDigits: 2});
+      document.getElementById('psNhima').textContent = 'ZMW ' + nhima.toLocaleString('en-US', {minimumFractionDigits: 2});
+      document.getElementById('psNapsa').textContent = 'ZMW ' + napsa.toLocaleString('en-US', {minimumFractionDigits: 2});
+      document.getElementById('psLoan').textContent = 'ZMW ' + loan.toLocaleString('en-US', {minimumFractionDigits: 2});
+      document.getElementById('psGratuity').textContent = 'ZMW ' + gratuity.toLocaleString('en-US', {minimumFractionDigits: 2});
+      document.getElementById('psTakeHome').textContent = 'ZMW ' + takeHome.toLocaleString('en-US', {minimumFractionDigits: 2});
+
+      new bootstrap.Modal(document.getElementById('viewPayslipModal')).show();
+    };
+
+    window.filterPayrollTable = function() {
+      renderPayrollTable();
+    };
+
+    function renderPayrollTable() {
+      const tbody = document.getElementById('payrollTableBody');
+      tbody.innerHTML = '';
+      const filter = (document.getElementById('payrollSearchInput').value || '').toLowerCase();
+
+      const filtered = payrollData.filter(emp => 
+        (emp.name + ' ' + (emp.surname || '')).toLowerCase().includes(filter) || 
+        emp.code.toLowerCase().includes(filter) || 
+        emp.role.toLowerCase().includes(filter)
+      );
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="12" class="text-center py-4 text-muted">No employees found in cloud database.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach((emp) => {
+        const basic = Number(emp.basic) || 0;
+        const housing = emp.hasHousing ? (basic * 0.30) : 0;
+        const gross = basic + housing;
+        const nhima = emp.hasNhima ? (basic * 0.01) : 0;
+        const napsa = emp.hasNapsa ? (gross * 0.05) : 0;
+        const loan = Number(emp.loanMonthly) || 0;
+        const gratuity = emp.hasGratuity ? (basic * 24 * 0.25) : 0;
+        const takeHome = gross - nhima - napsa - loan;
+
+        const editBtnHtml = loggedInDepartment === 'Tech Department' ? `<button class="btn btn-sm btn-outline-primary py-1 px-2" onclick="editEmployee('${emp.id}')"><i class="fa-solid fa-pen-to-square me-1"></i> Edit</button>` : '';
+
+        tbody.innerHTML += `
+          <tr>
+            <td class="fw-bold"><a href="#" onclick="openPayslip('${emp.id}'); return false;" class="text-decoration-underline">${emp.name} ${emp.surname || ''}</a></td>
+            <td><span class="badge bg-secondary">${emp.code}</span></td>
+            <td>${emp.role}</td>
+            <td>ZMW ${basic.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td>ZMW ${housing.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td class="fw-bold">ZMW ${gross.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td class="${nhima > 0 ? 'text-danger' : 'text-muted'}">ZMW ${nhima.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td class="${napsa > 0 ? 'text-danger' : 'text-muted'}">ZMW ${napsa.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td class="${gratuity > 0 ? 'text-success fw-bold' : 'text-muted'}">ZMW ${gratuity.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td class="${loan > 0 ? 'text-danger fw-bold' : 'text-muted'}">ZMW ${loan.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td class="fw-bold text-success">ZMW ${takeHome.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td>
+              <button class="btn btn-sm btn-success me-1 py-1 px-2" onclick="openPayslip('${emp.id}')"><i class="fa-solid fa-file-lines me-1"></i> Open Payslip</button>
+              ${editBtnHtml}
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    // Requisition Portal Logic
     window.openGenerateLinkModal = function() {
       document.getElementById('generatedLinkResultBox').style.display = 'none';
-      const modal = new bootstrap.Modal(document.getElementById('generateLinkModal'));
-      modal.show();
+      new bootstrap.Modal(document.getElementById('generateLinkModal')).show();
     };
 
     window.generateAndDisplayLink = function(e) {
@@ -508,8 +1518,7 @@
         });
       }
 
-      const modal = new bootstrap.Modal(document.getElementById('viewRequisitionModal'));
-      modal.show();
+      new bootstrap.Modal(document.getElementById('viewRequisitionModal')).show();
     };
 
     window.updateReqStatus = async function(status) {
@@ -518,9 +1527,7 @@
         const docRef = doc(db, "requisitions", currentDocId);
         await updateDoc(docRef, { status });
         alert(`Status changed to ${status}`);
-        const modalEl = document.getElementById('viewRequisitionModal');
-        const modal = bootstrap.Modal.getInstance(modalEl);
-        if (modal) modal.hide();
+        bootstrap.Modal.getInstance(document.getElementById('viewRequisitionModal')).hide();
       } catch (err) {
         alert('Error updating status: ' + err.message);
       }
@@ -536,7 +1543,9 @@
         currentDept = decodeURIComponent(dept);
         currentRole = decodeURIComponent(role);
 
+        document.getElementById('loginSection').style.display = 'none';
         document.getElementById('helloPageSection').style.display = 'none';
+        document.getElementById('employeeRegisterSection').style.display = 'none';
         document.getElementById('payrollAppSection').style.display = 'none';
         document.getElementById('requisitionsAppSection').style.display = 'none';
         document.getElementById('departmentPortalView').style.display = 'block';
@@ -546,9 +1555,12 @@
         document.getElementById('portalRoleInput').value = currentRole;
 
         resetDeptForm();
+      } else {
+        document.getElementById('loginSection').style.display = 'flex';
       }
 
       listenToRequisitions();
+      listenToEmployees();
     };
   </script>
 </body>
