@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance Managing App</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- html2pdf.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    :root {
+      --primary-orange: #ED7D31;
+      --header-navy: #1B435D;
+      --table-header-bg: #F47C20;
+      --btn-green: #0E7453;
+      --btn-gold: #D49016;
+      --row-alt-bg: #FFF3EB;
+      --underline-red: #C00000;
+      --bg-color: #f8f9fa;
+      --card-bg: #ffffff;
+      --text-color: #333333;
+    }
+    body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 13px; min-height: 100vh; }
+    .hello-page-header { background: linear-gradient(135deg, #1B435D 0%, #0d212d 100%); color: #ffffff; padding: 40px 20px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); margin-bottom: 30px; }
+    .hello-badge { background: rgba(255, 255, 255, 0.15); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: inline-block; }
+    .app-main-title { font-size: 2.2rem; font-weight: 800; }
+    .btn-payroll-trigger { background-color: var(--primary-orange); color: #ffffff; font-size: 1.1rem; font-weight: 700; padding: 12px 28px; border-radius: 8px; border: none; }
+    .btn-requisitions-trigger { background-color: #6610f2; color: #ffffff; font-size: 1.1rem; font-weight: 700; padding: 12px 28px; border-radius: 8px; border: none; position: relative; }
+    .notification-dot { position: absolute; top: -6px; right: -6px; height: 16px; width: 16px; background-color: #dc3545; border-radius: 50%; border: 2px solid #ffffff; display: none; }
+    .btn-back-nav { background-color: var(--header-navy); color: #ffffff; font-weight: 600; padding: 8px 16px; border-radius: 6px; border: none; }
+    .top-controls { background-color: var(--card-bg); padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .table-container { background-color: var(--card-bg); border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto; }
+    .requisition-table th { background-color: #6610f2 !important; color: white !important; padding: 10px 8px; font-size: 12px; }
+    .requisition-table td { padding: 8px 10px; white-space: nowrap; border-bottom: 1px solid #eee; }
+    .req-row-link { color: #1a0dab; font-weight: 600; text-decoration: underline; cursor: pointer; }
+    .req-doc-box { border: 2px solid var(--header-navy); padding: 25px; background: var(--card-bg); border-radius: 6px; }
+    @media print { body * { visibility: hidden; } .printable-area, .printable-area * { visibility: visible; } .printable-area { position: absolute; left: 0; top: 0; width: 100%; } .no-print { display: none !important; } }
+  </style>
+</head>
+<body data-bs-theme="light">
+
+  <!-- Hello Page Header -->
+  <div id="helloPageSection">
+    <header class="hello-page-header">
+      <div class="container-fluid px-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+          <div>
+            <div class="hello-badge mb-2"><i class="fa-solid fa-hand-wave me-1"></i> Welcome Dashboard</div>
+            <h1 class="app-main-title mb-1">Finance Managing App</h1>
+            <p class="text-white-50 mb-0 fs-6">Manage enterprise financial workflows, payroll schedules, and departmental purchase requisitions.</p>
+          </div>
+          <div class="d-flex align-items-center gap-3 flex-wrap">
+            <button class="btn btn-payroll-trigger" onclick="openPayrollApp()"><i class="fa-solid fa-calculator me-2"></i>PAYROLL</button>
+            <button class="btn btn-requisitions-trigger position-relative" onclick="openRequisitionsApp()"><i class="fa-solid fa-file-invoice me-2"></i>REQUISITIONS<span id="headerReqNotificationDot" class="notification-dot"></span></button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="container-fluid px-4 py-4 text-center">
+      <div class="p-5 border rounded-3 bg-white shadow-sm">
+        <i class="fa-solid fa-vault fa-4x text-secondary mb-3"></i>
+        <h3 class="fw-bold">Welcome to Finance Managing App</h3>
+        <p class="text-muted mx-auto" style="max-width: 600px;">Click either <strong class="text-orange">PAYROLL</strong> or <strong style="color: #6610f2;">REQUISITIONS</strong> on the header above to open the respective management module.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payroll Section -->
+  <div id="payrollAppSection" style="display: none;">
+    <div class="container-fluid px-4 py-3">
+      <div class="top-controls d-flex justify-content-between align-items-center">
+        <button class="btn btn-back-nav" onclick="returnToHelloPage()"><i class="fa-solid fa-arrow-left me-1"></i> Back</button>
+        <h3 class="fw-bold mb-0" style="color: #1B435D;">Payroll Management</h3>
+        <div></div>
+      </div>
+      <div class="p-4 bg-white border rounded shadow-sm text-center">
+        <p class="text-muted">Payroll module active. Use the navigation to manage employees and salaries.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Requisitions Hub Section -->
+  <div id="requisitionsAppSection" style="display: none;">
+    <div class="container-fluid px-4 py-3">
+      <div class="top-controls d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-back-nav" onclick="returnToHelloPage()"><i class="fa-solid fa-arrow-left me-1"></i> Back</button>
+          <h3 class="fw-bold mb-0" style="color: #1B435D;">Department Requisitions Hub</h3>
+        </div>
+        <button class="btn btn-warning fw-bold" onclick="openGenerateLinkModal()"><i class="fa-solid fa-link me-1"></i> Generate Link</button>
+      </div>
+
+      <div class="table-container">
+        <table class="table requisition-table">
+          <thead>
+            <tr>
+              <th>Req ID</th>
+              <th>Department</th>
+              <th>Role</th>
+              <th>Requester Name</th>
+              <th>Date Submitted</th>
+              <th>Total Items</th>
+              <th>Total Cost</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="requisitionTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Department Portal Form Modal -->
+  <div class="modal fade" id="departmentPortalModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title"><i class="fa-solid fa-mobile-screen me-2 text-warning"></i><span id="portalTitleHeader">Department Purchase Request Form</span></h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4 bg-body-tertiary">
+          <form id="deptRequestForm" onsubmit="submitDepartmentRequisition(event)">
+            <div class="row mb-3">
+              <div class="col-md-6 mb-2">
+                <label class="form-label fw-bold">Department</label>
+                <input type="text" class="form-control" id="portalDeptInput" readonly required>
+              </div>
+              <div class="col-md-6 mb-2">
+                <label class="form-label fw-bold">Designation / Role</label>
+                <input type="text" class="form-control" id="portalRoleInput" readonly required>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold">Requester Full Name</label>
+              <input type="text" class="form-control" id="deptRequesterName" placeholder="Enter your full name..." required>
+            </div>
+            <h6 class="fw-bold text-primary mt-4 mb-2"><i class="fa-solid fa-cart-shopping me-1"></i> Item List</h6>
+            <div id="deptItemsContainer" class="vstack gap-2 mb-3"></div>
+            <button type="button" class="btn btn-outline-secondary btn-sm fw-bold mb-4" onclick="addDeptItemRow()"><i class="fa-solid fa-plus me-1"></i> Add Item Button</button>
+            <div class="mb-3">
+              <label class="form-label fw-bold">Comments / Justification</label>
+              <textarea class="form-control" id="deptCommentInput" rows="3" placeholder="Provide reason for purchase..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-success w-100 py-2 fw-bold fs-6 shadow-sm"><i class="fa-solid fa-paper-plane me-1"></i> SUBMIT REQUISITION</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generate Link Modal -->
+  <div class="modal fade" id="generateLinkModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-link me-2 text-warning"></i>Generate Department Link (Director / Vice)</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form onsubmit="generateAndDisplayLink(event)">
+            <div class="mb-3">
+              <label class="form-label fw-bold">Select Department</label>
+              <select class="form-select" id="genLinkDepartment" required>
+                <option value="IT Department">IT Department</option>
+                <option value="HR & Admin">HR & Admin</option>
+                <option value="Finance & Accounts">Finance & Accounts</option>
+                <option value="Operations & Logistics">Operations & Logistics</option>
+                <option value="Sales & Marketing">Sales & Marketing</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold">Select Role / Link Type</label>
+              <select class="form-select" id="genLinkRole" required>
+                <option value="Director">Director Link</option>
+                <option value="Vice">Vice Link</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 fw-bold mb-3">Generate Link</button>
+          </form>
+          <div id="generatedLinkResultBox" style="display: none;" class="mt-3 p-3 bg-body-tertiary border rounded">
+            <label class="form-label small fw-bold text-success">Generated Link:</label>
+            <div class="input-group mb-2">
+              <input type="text" class="form-control form-control-sm" id="generatedLinkInput" readonly>
+              <button class="btn btn-outline-primary btn-sm" onclick="copyGenLink()"><i class="fa-solid fa-copy"></i></button>
+            </div>
+            <button class="btn btn-success btn-sm w-100 fw-bold mt-2" onclick="testGeneratedLinkUrl()"><i class="fa-solid fa-play me-1"></i> Test Link Now (Open Portal)</button>
+          </div>
+          <div id="copySuccessMsg" class="text-success small fw-bold mt-2" style="display: none;">Link copied to clipboard!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Requisition Detail Modal -->
+  <div class="modal fade" id="viewRequisitionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-file-excel me-2 text-success"></i>Requisition Sheet Detail</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body printable-area" id="requisitionPrintCard">
+          <div class="req-doc-box">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+              <div>
+                <h4 class="fw-bold mb-0 text-navy">Purchase Requisition Summary</h4>
+                <small class="text-muted" id="modalReqIdDate"></small>
+              </div>
+              <div><span id="modalReqStatusBadge" class="badge bg-warning text-dark px-3 py-2 fs-6">Under Review</span></div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-6"><strong>Department:</strong> <span id="modalReqDept"></span><br><strong>Role:</strong> <span id="modalReqRole"></span></div>
+              <div class="col-6 text-end"><strong>Requester Name:</strong> <span id="modalReqName"></span></div>
+            </div>
+            <table class="table table-bordered mb-3">
+              <thead class="table-light"><tr><th>Item Description</th><th class="text-center">Quantity</th><th class="text-end">Price Each</th><th class="text-end">Total</th></tr></thead>
+              <tbody id="modalReqItemsTableBody"></tbody>
+            </table>
+            <div class="mb-3"><strong>Comments:</strong><p id="modalReqComment" class="p-2 bg-body-tertiary border rounded mb-0 text-muted"></p></div>
+            <div class="no-print mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+              <div>
+                <button class="btn btn-success btn-sm fw-bold me-2" onclick="updateReqStatus('Cleared')"><i class="fa-solid fa-check me-1"></i> Clear / Approve</button>
+                <button class="btn btn-danger btn-sm fw-bold" onclick="updateReqStatus('Rejected')"><i class="fa-solid fa-xmark me-1"></i> Reject</button>
+              </div>
+              <button class="btn btn-outline-dark btn-sm fw-bold" onclick="window.print()"><i class="fa-solid fa-print me-1"></i> Print / Save PDF</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function openPayrollApp() { document.getElementById('helloPageSection').style.display = 'none'; document.getElementById('requisitionsAppSection').style.display = 'none'; document.getElementById('payrollAppSection').style.display = 'block'; }
+    function openRequisitionsApp() { document.getElementById('helloPageSection').style.display = 'none'; document.getElementById('payrollAppSection').style.display = 'none'; document.getElementById('requisitionsAppSection').style.display = 'block'; document.getElementById('headerReqNotificationDot').style.display = 'none'; renderRequisitionsTable(); }
+    function returnToHelloPage() { document.getElementById('payrollAppSection').style.display = 'none'; document.getElementById('requisitionsAppSection').style.display = 'none'; document.getElementById('helloPageSection').style.display = 'block'; }
+
+    let requisitionsData = JSON.parse(localStorage.getItem('finance_requisitions') || '[]');
+    let currentActiveId = null;
+    let activeTestDept = "";
+    let activeTestRole = "";
+
+    function openGenerateLinkModal() { document.getElementById('generatedLinkResultBox').style.display = 'none'; new bootstrap.Modal(document.getElementById('generateLinkModal')).show(); }
+    function generateAndDisplayLink(e) {
+      e.preventDefault();
+      const dept = document.getElementById('genLinkDepartment').value;
+      const role = document.getElementById('genLinkRole').value;
+      activeTestDept = dept;
+      activeTestRole = role;
+      const functionalUrl = `${window.location.origin}${window.location.pathname}?dept=${encodeURIComponent(dept)}&role=${encodeURIComponent(role)}`;
+      document.getElementById('generatedLinkInput').value = functionalUrl;
+      document.getElementById('generatedLinkResultBox').style.display = 'block';
+    }
+    function copyGenLink() {
+      const input = document.getElementById('generatedLinkInput');
+      input.select();
+      navigator.clipboard.writeText(input.value);
+      document.getElementById('copySuccessMsg').style.display = 'block';
+      setTimeout(() => { document.getElementById('copySuccessMsg').style.display = 'none'; }, 3000);
+    }
+    function testGeneratedLinkUrl() { bootstrap.Modal.getInstance(document.getElementById('generateLinkModal')).hide(); openDepartmentPortalWithRole(activeTestDept, activeTestRole); }
+    function openDepartmentPortalWithRole(dept, role) {
+      document.getElementById('portalTitleHeader').textContent = `${dept} (${role} Portal)`;
+      document.getElementById('portalDeptInput').value = dept;
+      document.getElementById('portalRoleInput').value = role;
+      document.getElementById('deptRequestForm').reset();
+      document.getElementById('portalDeptInput').value = dept;
+      document.getElementById('portalRoleInput').value = role;
+      document.getElementById('deptItemsContainer').innerHTML = '';
+      addDeptItemRow();
+      new bootstrap.Modal(document.getElementById('departmentPortalModal')).show();
+    }
+    function addDeptItemRow() {
+      const container = document.getElementById('deptItemsContainer');
+      const div = document.createElement('div');
+      div.className = 'row g-2 align-items-center bg-white p-2 border rounded shadow-sm item-row';
+      div.innerHTML = `
+        <div class="col-md-5 col-12"><input type="text" class="form-control form-control-sm item-name" placeholder="Item description" required></div>
+        <div class="col-md-2 col-4"><input type="number" min="1" class="form-control form-control-sm item-qty" value="1" oninput="calcItemRowTotal(this)" required></div>
+        <div class="col-md-3 col-6"><input type="number" step="0.01" min="0" class="form-control form-control-sm item-price" value="0.00" oninput="calcItemRowTotal(this)" required></div>
+        <div class="col-md-2 col-2 text-end"><span class="fw-bold text-success item-row-total text-nowrap">0.00</span><button type="button" class="btn btn-outline-danger btn-sm border-0 ms-1" onclick="this.closest('.item-row').remove()"><i class="fa-solid fa-trash"></i></button></div>
+      `;
+      container.appendChild(div);
+    }
+    function calcItemRowTotal(el) {
+      const row = el.closest('.item-row');
+      const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+      const price = parseFloat(row.querySelector('.item-price').value) || 0;
+      row.querySelector('.item-row-total').textContent = (qty * price).toFixed(2);
+    }
+    function submitDepartmentRequisition(e) {
+      e.preventDefault();
+      const items = [];
+      let grandTotal = 0;
+      document.querySelectorAll('.item-row').forEach(row => {
+        const desc = row.querySelector('.item-name').value;
+        const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+        const price = parseFloat(row.querySelector('.item-price').value) || 0;
+        grandTotal += (qty * price);
+        items.push({ desc, qty, price, total: qty * price });
+      });
+      const newReq = {
+        id: 'REQ-' + Math.floor(1000 + Math.random() * 9000),
+        department: document.getElementById('portalDeptInput').value,
+        role: document.getElementById('portalRoleInput').value,
+        name: document.getElementById('deptRequesterName').value,
+        date: new Date().toISOString().slice(0, 10),
+        items,
+        totalCost: grandTotal,
+        comment: document.getElementById('deptCommentInput').value || 'No comments.',
+        status: 'Under Review'
+      };
+      requisitionsData.push(newReq);
+      localStorage.setItem('finance_requisitions', JSON.stringify(requisitionsData));
+      bootstrap.Modal.getInstance(document.getElementById('departmentPortalModal')).hide();
+      alert('Requisition submitted successfully!');
+      document.getElementById('headerReqNotificationDot').style.display = 'block';
+    }
+    function renderRequisitionsTable() {
+      const tbody = document.getElementById('requisitionTableBody');
+      tbody.innerHTML = '';
+      if (requisitionsData.length === 0) { tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">No requisitions found.</td></tr>`; return; }
+      requisitionsData.forEach((req, idx) => {
+        let badgeClass = req.status === 'Cleared' ? 'bg-success text-white' : req.status === 'Rejected' ? 'bg-danger text-white' : 'bg-warning text-dark';
+        tbody.innerHTML += `
+          <tr ondblclick="openRequisitionDetail(${idx})">
+            <td class="fw-bold">${req.id}</td>
+            <td>${req.department}</td>
+            <td><span class="badge bg-secondary">${req.role}</span></td>
+            <td><span class="req-row-link" onclick="openRequisitionDetail(${idx})">${req.name}</span></td>
+            <td>${req.date}</td>
+            <td>${req.items.length} item(s)</td>
+            <td class="fw-bold text-success">${Number(req.totalCost).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td><span class="badge ${badgeClass}">${req.status}</span></td>
+            <td><button class="btn btn-sm btn-outline-primary" onclick="openRequisitionDetail(${idx})"><i class="fa-solid fa-folder-open me-1"></i> Open</button></td>
+          </tr>
+        `;
+      });
+    }
+    function openRequisitionDetail(idx) {
+      const req = requisitionsData[idx];
+      currentActiveId = idx;
+      document.getElementById('modalReqIdDate').textContent = `${req.id} | Submitted: ${req.date}`;
+      document.getElementById('modalReqDept').textContent = req.department;
+      document.getElementById('modalReqRole').textContent = req.role;
+      document.getElementById('modalReqName').textContent = req.name;
+      document.getElementById('modalReqComment').textContent = req.comment;
+      const badge = document.getElementById('modalReqStatusBadge');
+      badge.textContent = req.status;
+      badge.className = `badge px-3 py-2 fs-6 ${req.status === 'Cleared' ? 'bg-success text-white' : req.status === 'Rejected' ? 'bg-danger text-white' : 'bg-warning text-dark'}`;
+      const tbody = document.getElementById('modalReqItemsTableBody');
+      tbody.innerHTML = '';
+      req.items.forEach(item => {
+        tbody.innerHTML += `<tr><td>${item.desc}</td><td class="text-center">${item.qty}</td><td class="text-end">${Number(item.price).toFixed(2)}</td><td class="text-end fw-bold">${Number(item.total).toFixed(2)}</td></tr>`;
+      });
+      new bootstrap.Modal(document.getElementById('viewRequisitionModal')).show();
+    }
+    function updateReqStatus(status) {
+      if (currentActiveId === null) return;
+      requisitionsData[currentActiveId].status = status;
+      localStorage.setItem('finance_requisitions', JSON.stringify(requisitionsData));
+      openRequisitionDetail(currentActiveId);
+      renderRequisitionsTable();
+      alert(`Status changed to ${status}`);
+    }
+    window.onload = function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const dept = urlParams.get('dept');
+      const role = urlParams.get('role');
+      if (dept && role) { openDepartmentPortalWithRole(decodeURIComponent(dept), decodeURIComponent(role)); }
+      
+      // Check notification dot state on load if there are unreviewed items
+      if (requisitionsData.some(r => r.status === 'Under Review')) {
+        document.getElementById('headerReqNotificationDot').style.display = 'block';
+      }
+    };
+  </script>
+</body>
+</html>
