@@ -25,12 +25,12 @@
       --text-color: #333333;
     }
     body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 13px; min-height: 100vh; }
-    .hello-page-header { background: linear-gradient(135deg, #1B435D 0%, #0d212d 100%); color: #ffffff; padding: 40px 20px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); margin-bottom: 30px; }
+    .hello-page-header { background: linear-gradient(135deg, #1B435D 0%, #0d212d 100%); color: #ffffff; padding: 30px 20px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); margin-bottom: 25px; }
     .hello-badge { background: rgba(255, 255, 255, 0.15); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: inline-block; }
-    .app-main-title { font-size: 2.2rem; font-weight: 800; }
-    .btn-payroll-trigger { background-color: var(--primary-orange); color: #ffffff; font-size: 1.1rem; font-weight: 700; padding: 12px 28px; border-radius: 8px; border: none; }
-    .btn-requisitions-trigger { background-color: #6610f2; color: #ffffff; font-size: 1.1rem; font-weight: 700; padding: 12px 28px; border-radius: 8px; border: none; position: relative; }
-    .notification-dot { position: absolute; top: -6px; right: -6px; height: 16px; width: 16px; background-color: #dc3545; border-radius: 50%; border: 2px solid #ffffff; display: none; }
+    .app-main-title { font-size: 2rem; font-weight: 800; }
+    .btn-payroll-trigger { background-color: var(--primary-orange); color: #ffffff; font-size: 1rem; font-weight: 700; padding: 10px 24px; border-radius: 8px; border: none; }
+    .btn-requisitions-trigger { background-color: #6610f2; color: #ffffff; font-size: 1rem; font-weight: 700; padding: 10px 24px; border-radius: 8px; border: none; position: relative; }
+    .notification-dot { position: absolute; top: -4px; right: -4px; height: 14px; width: 14px; background-color: #dc3545; border-radius: 50%; border: 2px solid #ffffff; display: none; }
     .btn-back-nav { background-color: var(--header-navy); color: #ffffff; font-weight: 600; padding: 8px 16px; border-radius: 6px; border: none; }
     .top-controls { background-color: var(--card-bg); padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
     .table-container { background-color: var(--card-bg); border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto; }
@@ -43,7 +43,7 @@
 </head>
 <body data-bs-theme="light">
 
-  <!-- Hello Page Header -->
+  <!-- Main Computer Hello Dashboard -->
   <div id="helloPageSection">
     <header class="hello-page-header">
       <div class="container-fluid px-4">
@@ -64,12 +64,12 @@
       <div class="p-5 border rounded-3 bg-white shadow-sm">
         <i class="fa-solid fa-vault fa-4x text-secondary mb-3"></i>
         <h3 class="fw-bold">Welcome to Finance Managing App</h3>
-        <p class="text-muted mx-auto" style="max-width: 600px;">Click either <strong class="text-orange">PAYROLL</strong> or <strong style="color: #6610f2;">REQUISITIONS</strong> on the header above to open the respective management module.</p>
+        <p class="text-muted mx-auto" style="max-width: 600px;">Click either <strong class="text-warning">PAYROLL</strong> or <strong style="color: #6610f2;">REQUISITIONS</strong> on the header above to open the respective management module.</p>
       </div>
     </div>
   </div>
 
-  <!-- Payroll Section -->
+  <!-- Payroll Section (Computer Only) -->
   <div id="payrollAppSection" style="display: none;">
     <div class="container-fluid px-4 py-3">
       <div class="top-controls d-flex justify-content-between align-items-center">
@@ -83,19 +83,19 @@
     </div>
   </div>
 
-  <!-- Requisitions Hub Section -->
+  <!-- Main Computer Requisitions Hub (Full List & Control) -->
   <div id="requisitionsAppSection" style="display: none;">
     <div class="container-fluid px-4 py-3">
       <div class="top-controls d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div class="d-flex align-items-center gap-3">
           <button class="btn btn-back-nav" onclick="returnToHelloPage()"><i class="fa-solid fa-arrow-left me-1"></i> Back</button>
-          <h3 class="fw-bold mb-0" style="color: #1B435D;">Department Requisitions Hub</h3>
+          <h3 class="fw-bold mb-0" style="color: #1B435D;">Master Requisitions Hub</h3>
         </div>
-        <button class="btn btn-warning fw-bold" onclick="openGenerateLinkModal()"><i class="fa-solid fa-link me-1"></i> Generate Link</button>
+        <button class="btn btn-warning fw-bold" onclick="openGenerateLinkModal()"><i class="fa-solid fa-link me-1"></i> Generate Department Link</button>
       </div>
 
       <div class="table-container">
-        <table class="table requisition-table">
+        <table class="table requisition-table align-middle">
           <thead>
             <tr>
               <th>Req ID</th>
@@ -115,50 +115,76 @@
     </div>
   </div>
 
-  <!-- Department Portal Form Modal -->
-  <div class="modal fade" id="departmentPortalModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header bg-dark text-white">
-          <h5 class="modal-title"><i class="fa-solid fa-mobile-screen me-2 text-warning"></i><span id="portalTitleHeader">Department Purchase Request Form</span></h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+  <!-- Department / Phone Portal View (Restricted View) -->
+  <div id="departmentPortalView" style="display: none;" class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <!-- Requisition Creation Card -->
+        <div class="card shadow-sm border-0 mb-4">
+          <div class="card-header bg-dark text-white p-3">
+            <h5 class="mb-0 fw-bold"><i class="fa-solid fa-mobile-screen me-2 text-warning"></i><span id="portalTitleHeader">Department Purchase Request</span></h5>
+          </div>
+          <div class="card-body p-4 bg-light">
+            <form id="deptRequestForm" onsubmit="submitDepartmentRequisition(event)">
+              <div class="row mb-3">
+                <div class="col-md-6 mb-2">
+                  <label class="form-label fw-bold">Department</label>
+                  <input type="text" class="form-control" id="portalDeptInput" readonly required>
+                </div>
+                <div class="col-md-6 mb-2">
+                  <label class="form-label fw-bold">Designation / Role</label>
+                  <input type="text" class="form-control" id="portalRoleInput" readonly required>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold">Requester Full Name</label>
+                <input type="text" class="form-control" id="deptRequesterName" placeholder="Enter your full name..." required>
+              </div>
+              <h6 class="fw-bold text-primary mt-4 mb-2"><i class="fa-solid fa-cart-shopping me-1"></i> Item List</h6>
+              <div id="deptItemsContainer" class="vstack gap-2 mb-3"></div>
+              <button type="button" class="btn btn-outline-secondary btn-sm fw-bold mb-4" onclick="addDeptItemRow()"><i class="fa-solid fa-plus me-1"></i> Add Item Row</button>
+              <div class="mb-3">
+                <label class="form-label fw-bold">Comments / Justification</label>
+                <textarea class="form-control" id="deptCommentInput" rows="3" placeholder="Provide reason for purchase..."></textarea>
+              </div>
+              <button type="submit" class="btn btn-success w-100 py-2 fw-bold fs-6 shadow-sm"><i class="fa-solid fa-paper-plane me-1"></i> SUBMIT REQUISITION</button>
+            </form>
+          </div>
         </div>
-        <div class="modal-body p-4 bg-body-tertiary">
-          <form id="deptRequestForm" onsubmit="submitDepartmentRequisition(event)">
-            <div class="row mb-3">
-              <div class="col-md-6 mb-2">
-                <label class="form-label fw-bold">Department</label>
-                <input type="text" class="form-control" id="portalDeptInput" readonly required>
-              </div>
-              <div class="col-md-6 mb-2">
-                <label class="form-label fw-bold">Designation / Role</label>
-                <input type="text" class="form-control" id="portalRoleInput" readonly required>
-              </div>
+
+        <!-- Phone / Dept Personal Submitted List -->
+        <div class="card shadow-sm border-0">
+          <div class="card-header bg-secondary text-white p-3">
+            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-list-check me-2"></i>My Department Submitted Requisitions</h6>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-striped mb-0 text-center align-middle">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Req ID</th>
+                    <th>Date</th>
+                    <th>Requester</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="deptHistoryTableBody"></tbody>
+              </table>
             </div>
-            <div class="mb-3">
-              <label class="form-label fw-bold">Requester Full Name</label>
-              <input type="text" class="form-control" id="deptRequesterName" placeholder="Enter your full name..." required>
-            </div>
-            <h6 class="fw-bold text-primary mt-4 mb-2"><i class="fa-solid fa-cart-shopping me-1"></i> Item List</h6>
-            <div id="deptItemsContainer" class="vstack gap-2 mb-3"></div>
-            <button type="button" class="btn btn-outline-secondary btn-sm fw-bold mb-4" onclick="addDeptItemRow()"><i class="fa-solid fa-plus me-1"></i> Add Item Button</button>
-            <div class="mb-3">
-              <label class="form-label fw-bold">Comments / Justification</label>
-              <textarea class="form-control" id="deptCommentInput" rows="3" placeholder="Provide reason for purchase..."></textarea>
-            </div>
-            <button type="submit" class="btn btn-success w-100 py-2 fw-bold fs-6 shadow-sm"><i class="fa-solid fa-paper-plane me-1"></i> SUBMIT REQUISITION</button>
-          </form>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Generate Link Modal -->
+  <!-- Generate Link Modal (Computer Hub Only) -->
   <div class="modal fade" id="generateLinkModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title fw-bold"><i class="fa-solid fa-link me-2 text-warning"></i>Generate Department Link (Director / Vice)</h5>
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-link me-2 text-warning"></i>Generate Department Link</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -183,12 +209,12 @@
             <button type="submit" class="btn btn-primary w-100 fw-bold mb-3">Generate Link</button>
           </form>
           <div id="generatedLinkResultBox" style="display: none;" class="mt-3 p-3 bg-body-tertiary border rounded">
-            <label class="form-label small fw-bold text-success">Generated Link:</label>
+            <label class="form-label small fw-bold text-success">Generated Department Link:</label>
             <div class="input-group mb-2">
               <input type="text" class="form-control form-control-sm" id="generatedLinkInput" readonly>
               <button class="btn btn-outline-primary btn-sm" onclick="copyGenLink()"><i class="fa-solid fa-copy"></i></button>
             </div>
-            <button class="btn btn-success btn-sm w-100 fw-bold mt-2" onclick="testGeneratedLinkUrl()"><i class="fa-solid fa-play me-1"></i> Test Link Now (Open Portal)</button>
+            <p class="small text-muted mb-0">Copy and open this link on a mobile device or department computer.</p>
           </div>
           <div id="copySuccessMsg" class="text-success small fw-bold mt-2" style="display: none;">Link copied to clipboard!</div>
         </div>
@@ -196,7 +222,7 @@
     </div>
   </div>
 
-  <!-- Requisition Detail Modal -->
+  <!-- Requisition Detail Modal (Computer Hub Only) -->
   <div class="modal fade" id="viewRequisitionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
@@ -238,26 +264,49 @@
   <!-- Bootstrap JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    function openPayrollApp() { document.getElementById('helloPageSection').style.display = 'none'; document.getElementById('requisitionsAppSection').style.display = 'none'; document.getElementById('payrollAppSection').style.display = 'block'; }
-    function openRequisitionsApp() { document.getElementById('helloPageSection').style.display = 'none'; document.getElementById('payrollAppSection').style.display = 'none'; document.getElementById('requisitionsAppSection').style.display = 'block'; document.getElementById('headerReqNotificationDot').style.display = 'none'; renderRequisitionsTable(); }
-    function returnToHelloPage() { document.getElementById('payrollAppSection').style.display = 'none'; document.getElementById('requisitionsAppSection').style.display = 'none'; document.getElementById('helloPageSection').style.display = 'block'; }
+    // BroadcastChannel for cross-tab realtime synchronization on the same computer
+    const syncChannel = new BroadcastChannel('finance_req_sync');
 
     let requisitionsData = JSON.parse(localStorage.getItem('finance_requisitions') || '[]');
     let currentActiveId = null;
-    let activeTestDept = "";
-    let activeTestRole = "";
+    let isDepartmentPortal = false;
+    let currentDept = '';
+    let currentRole = '';
 
-    function openGenerateLinkModal() { document.getElementById('generatedLinkResultBox').style.display = 'none'; new bootstrap.Modal(document.getElementById('generateLinkModal')).show(); }
+    function openPayrollApp() { 
+      document.getElementById('helloPageSection').style.display = 'none'; 
+      document.getElementById('requisitionsAppSection').style.display = 'none'; 
+      document.getElementById('payrollAppSection').style.display = 'block'; 
+    }
+    
+    function openRequisitionsApp() { 
+      document.getElementById('helloPageSection').style.display = 'none'; 
+      document.getElementById('payrollAppSection').style.display = 'none'; 
+      document.getElementById('requisitionsAppSection').style.display = 'block'; 
+      document.getElementById('headerReqNotificationDot').style.display = 'none'; 
+      renderRequisitionsTable(); 
+    }
+    
+    function returnToHelloPage() { 
+      document.getElementById('payrollAppSection').style.display = 'none'; 
+      document.getElementById('requisitionsAppSection').style.display = 'none'; 
+      document.getElementById('helloPageSection').style.display = 'block'; 
+    }
+
+    function openGenerateLinkModal() { 
+      document.getElementById('generatedLinkResultBox').style.display = 'none'; 
+      new bootstrap.Modal(document.getElementById('generateLinkModal')).show(); 
+    }
+
     function generateAndDisplayLink(e) {
       e.preventDefault();
       const dept = document.getElementById('genLinkDepartment').value;
       const role = document.getElementById('genLinkRole').value;
-      activeTestDept = dept;
-      activeTestRole = role;
       const functionalUrl = `${window.location.origin}${window.location.pathname}?dept=${encodeURIComponent(dept)}&role=${encodeURIComponent(role)}`;
       document.getElementById('generatedLinkInput').value = functionalUrl;
       document.getElementById('generatedLinkResultBox').style.display = 'block';
     }
+
     function copyGenLink() {
       const input = document.getElementById('generatedLinkInput');
       input.select();
@@ -265,18 +314,38 @@
       document.getElementById('copySuccessMsg').style.display = 'block';
       setTimeout(() => { document.getElementById('copySuccessMsg').style.display = 'none'; }, 3000);
     }
-    function testGeneratedLinkUrl() { bootstrap.Modal.getInstance(document.getElementById('generateLinkModal')).hide(); openDepartmentPortalWithRole(activeTestDept, activeTestRole); }
-    function openDepartmentPortalWithRole(dept, role) {
-      document.getElementById('portalTitleHeader').textContent = `${dept} (${role} Portal)`;
+
+    // Setup Department Portal View
+    function setupDepartmentPortalView(dept, role) {
+      isDepartmentPortal = true;
+      currentDept = dept;
+      currentRole = role;
+
+      // Hide Admin Sections
+      document.getElementById('helloPageSection').style.display = 'none';
+      document.getElementById('payrollAppSection').style.display = 'none';
+      document.getElementById('requisitionsAppSection').style.display = 'none';
+
+      // Display Department Portal View
+      document.getElementById('departmentPortalView').style.display = 'block';
+
+      // Populate portal details
+      document.getElementById('portalTitleHeader').textContent = `${dept} (${role} Access)`;
       document.getElementById('portalDeptInput').value = dept;
       document.getElementById('portalRoleInput').value = role;
+
+      resetDeptForm();
+      renderDeptHistoryTable();
+    }
+
+    function resetDeptForm() {
       document.getElementById('deptRequestForm').reset();
-      document.getElementById('portalDeptInput').value = dept;
-      document.getElementById('portalRoleInput').value = role;
+      document.getElementById('portalDeptInput').value = currentDept;
+      document.getElementById('portalRoleInput').value = currentRole;
       document.getElementById('deptItemsContainer').innerHTML = '';
       addDeptItemRow();
-      new bootstrap.Modal(document.getElementById('departmentPortalModal')).show();
     }
+
     function addDeptItemRow() {
       const container = document.getElementById('deptItemsContainer');
       const div = document.createElement('div');
@@ -289,12 +358,14 @@
       `;
       container.appendChild(div);
     }
+
     function calcItemRowTotal(el) {
       const row = el.closest('.item-row');
       const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
       const price = parseFloat(row.querySelector('.item-price').value) || 0;
       row.querySelector('.item-row-total').textContent = (qty * price).toFixed(2);
     }
+
     function submitDepartmentRequisition(e) {
       e.preventDefault();
       const items = [];
@@ -306,6 +377,7 @@
         grandTotal += (qty * price);
         items.push({ desc, qty, price, total: qty * price });
       });
+
       const newReq = {
         id: 'REQ-' + Math.floor(1000 + Math.random() * 9000),
         department: document.getElementById('portalDeptInput').value,
@@ -317,16 +389,56 @@
         comment: document.getElementById('deptCommentInput').value || 'No comments.',
         status: 'Under Review'
       };
+
+      requisitionsData = JSON.parse(localStorage.getItem('finance_requisitions') || '[]');
       requisitionsData.push(newReq);
       localStorage.setItem('finance_requisitions', JSON.stringify(requisitionsData));
-      bootstrap.Modal.getInstance(document.getElementById('departmentPortalModal')).hide();
+
+      // Notify Master Computer via Broadcast Channel
+      syncChannel.postMessage({ type: 'NEW_REQUISITION', data: newReq });
+
       alert('Requisition submitted successfully!');
-      document.getElementById('headerReqNotificationDot').style.display = 'block';
+      resetDeptForm();
+      renderDeptHistoryTable();
     }
+
+    function renderDeptHistoryTable() {
+      const tbody = document.getElementById('deptHistoryTableBody');
+      tbody.innerHTML = '';
+      requisitionsData = JSON.parse(localStorage.getItem('finance_requisitions') || '[]');
+      
+      const filtered = requisitionsData.filter(r => r.department === currentDept);
+      
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-muted py-3">No requisitions submitted yet.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(req => {
+        let badgeClass = req.status === 'Cleared' ? 'bg-success' : req.status === 'Rejected' ? 'bg-danger' : 'bg-warning text-dark';
+        tbody.innerHTML += `
+          <tr>
+            <td class="fw-bold">${req.id}</td>
+            <td>${req.date}</td>
+            <td>${req.name}</td>
+            <td>${req.items.length}</td>
+            <td class="fw-bold text-success">${Number(req.totalCost).toFixed(2)}</td>
+            <td><span class="badge ${badgeClass}">${req.status}</span></td>
+          </tr>
+        `;
+      });
+    }
+
     function renderRequisitionsTable() {
       const tbody = document.getElementById('requisitionTableBody');
       tbody.innerHTML = '';
-      if (requisitionsData.length === 0) { tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">No requisitions found.</td></tr>`; return; }
+      requisitionsData = JSON.parse(localStorage.getItem('finance_requisitions') || '[]');
+      
+      if (requisitionsData.length === 0) { 
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">No requisitions found.</td></tr>`; 
+        return; 
+      }
+
       requisitionsData.forEach((req, idx) => {
         let badgeClass = req.status === 'Cleared' ? 'bg-success text-white' : req.status === 'Rejected' ? 'bg-danger text-white' : 'bg-warning text-dark';
         tbody.innerHTML += `
@@ -344,6 +456,7 @@
         `;
       });
     }
+
     function openRequisitionDetail(idx) {
       const req = requisitionsData[idx];
       currentActiveId = idx;
@@ -362,23 +475,53 @@
       });
       new bootstrap.Modal(document.getElementById('viewRequisitionModal')).show();
     }
+
     function updateReqStatus(status) {
       if (currentActiveId === null) return;
       requisitionsData[currentActiveId].status = status;
       localStorage.setItem('finance_requisitions', JSON.stringify(requisitionsData));
+      
+      // Sync across tabs
+      syncChannel.postMessage({ type: 'STATUS_UPDATED' });
+      
       openRequisitionDetail(currentActiveId);
       renderRequisitionsTable();
       alert(`Status changed to ${status}`);
     }
+
+    // Broadcast Listening for Realtime Updates
+    syncChannel.onmessage = function(event) {
+      if (!isDepartmentPortal) {
+        document.getElementById('headerReqNotificationDot').style.display = 'block';
+        renderRequisitionsTable();
+      } else {
+        renderDeptHistoryTable();
+      }
+    };
+
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'finance_requisitions') {
+        if (!isDepartmentPortal) {
+          renderRequisitionsTable();
+        } else {
+          renderDeptHistoryTable();
+        }
+      }
+    });
+
     window.onload = function() {
       const urlParams = new URLSearchParams(window.location.search);
       const dept = urlParams.get('dept');
       const role = urlParams.get('role');
-      if (dept && role) { openDepartmentPortalWithRole(decodeURIComponent(dept), decodeURIComponent(role)); }
-      
-      // Check notification dot state on load if there are unreviewed items
-      if (requisitionsData.some(r => r.status === 'Under Review')) {
-        document.getElementById('headerReqNotificationDot').style.display = 'block';
+
+      // If loaded with URL parameters (Phone or Department Computer mode)
+      if (dept && role) { 
+        setupDepartmentPortalView(decodeURIComponent(dept), decodeURIComponent(role)); 
+      } else {
+        // Main Computer / Link Generator Computer mode
+        if (requisitionsData.some(r => r.status === 'Under Review')) {
+          document.getElementById('headerReqNotificationDot').style.display = 'block';
+        }
       }
     };
   </script>
