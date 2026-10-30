@@ -1383,7 +1383,6 @@
                         </li>
                     </ul>
                 </div>
-                <a href="#register" id="navRegisterWebsiteBtn" onclick="openRegisterNewMemberModal(); return false;"><i class="fa-solid fa-id-card-clip me-1"></i> Register</a>
             </nav>
         </header>
         <div class="glass-line"></div>
@@ -1516,7 +1515,11 @@
 
             <!-- Active Video Player Container (Wide 16:9 Theater Mode) -->
             <div id="mainVideoPlayerContainer" class="watch-theater-box">
-                <iframe id="mainVideoPlayer" width="100%" height="100%" src="https://www.youtube.com/embed/kJQP7kiw5Fk?autoplay=1" title="Grace Exploits Video Player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-black text-white p-4 text-center rounded-4">
+                    <i class="fa-solid fa-circle-play text-danger display-4 mb-2"></i>
+                    <h5 class="fw-bold mb-1">Click Any Video Card Below to Watch</h5>
+                    <small class="text-white-50">Select Sunday services, midweek sermons or choir ministrations to start playing.</small>
+                </div>
             </div>
 
             <!-- Video Title & Details Bar Below Player -->
@@ -3168,6 +3171,14 @@
     <div class="row justify-content-center">
       <div class="col-lg-10 col-12">
 
+        <!-- Return to Website Bar for Events Staff Mobile App -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-sm fw-bold" onclick="returnToChurchWebsite()">
+            <i class="fa-solid fa-arrow-left me-1"></i> Return to Church Website
+          </button>
+          <span class="badge bg-dark text-warning px-2 py-1"><i class="fa-solid fa-mobile-screen me-1"></i> Smartphone Staff View</span>
+        </div>
+
         <!-- Staff Role Profile Header Card -->
         <div class="card shadow-sm border-0 mb-3 bg-white">
           <div class="card-body p-3 p-md-4">
@@ -3352,7 +3363,21 @@
 
       </div>
     </div>
-  </div>
+  </div> <!-- /#eventsStaffPortalView -->
+
+  <!-- ======================================================= -->
+  <!-- DEPARTMENT PURCHASE REQUEST PORTAL (For Department Requisition Links) -->
+  <!-- ======================================================= -->
+  <div id="departmentPortalView" style="display: none;" class="container py-3">
+    <!-- Top Bar with Return to Church Website Button -->
+    <div class="row justify-content-center mb-3">
+      <div class="col-lg-10 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-sm fw-bold" onclick="returnToChurchWebsite()">
+          <i class="fa-solid fa-arrow-left me-1"></i> Return to Church Website
+        </button>
+        <span class="badge bg-primary px-3 py-2"><i class="fa-solid fa-building me-1"></i> Department Requisition Portal</span>
+      </div>
+    </div>
     <div class="row justify-content-center">
       <div class="col-lg-10">
         <!-- Requisition Creation Card -->
@@ -10194,7 +10219,10 @@
       e.preventDefault();
       const dept = document.getElementById('genLinkDepartment').value;
       const role = document.getElementById('genLinkRole').value;
-      const functionalUrl = `${window.location.origin}${window.location.pathname}?dept=${encodeURIComponent(dept)}&role=${encodeURIComponent(role)}`;
+      const isEvents = (dept || '').toLowerCase().includes('event');
+      const functionalUrl = isEvents
+        ? `${window.location.origin}${window.location.pathname}?portal=events&role=${encodeURIComponent(role)}&staff=${encodeURIComponent(dept + ' ' + role)}`
+        : `${window.location.origin}${window.location.pathname}?portal=requisition&dept=${encodeURIComponent(dept)}&role=${encodeURIComponent(role)}`;
       document.getElementById('generatedLinkInput').value = functionalUrl;
       document.getElementById('generatedLinkResultBox').style.display = 'block';
     };
@@ -12925,10 +12953,25 @@
     };
 
     window.returnToChurchWebsite = function() {
+      // Clear URL params without full page reload so refreshed pages always return to website
+      try {
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      } catch (e) {}
+
       const websiteApp = document.getElementById('churchWebsiteApp');
       const databaseApp = document.getElementById('churchDatabaseApp');
       if (databaseApp) databaseApp.style.display = 'none';
       if (websiteApp) websiteApp.style.display = 'block';
+
+      const deptPortal = document.getElementById('departmentPortalView');
+      if (deptPortal) deptPortal.style.display = 'none';
+      const staffPortal = document.getElementById('eventsStaffPortalView');
+      if (staffPortal) staffPortal.style.display = 'none';
+      const cellPortal = document.getElementById('cellLeaderPortalView');
+      if (cellPortal) cellPortal.style.display = 'none';
+
       document.body.style.overflow = 'auto';
     };
 
@@ -15892,9 +15935,6 @@
         document.body.style.overflow = 'hidden';
       }
       renderWebsiteWatchCards();
-      if (watchVideosList.length > 0 && !activePlayingVideoId) {
-        playWatchVideo(watchVideosList[0].id);
-      }
     };
 
     // =======================================================
@@ -15913,13 +15953,14 @@
       const cellParam = urlParams.get('cell');
 
       // Check if user opened the Events Staff Mobile Portal (Director, Vice Director, Supervisors)
-      if (portal === 'events') {
+      if (portal === 'events' || (dept && dept.toLowerCase().includes('event'))) {
         initEventsStaffPortal(role, staffParam);
       } else if (portal === 'cell' || cellLeaderParam) {
         document.getElementById('churchWebsiteApp').style.display = 'none';
         document.getElementById('churchDatabaseApp').style.display = 'block';
         initCellLeaderPortal(cellLeaderParam, areaParam, zoneParam, cellParam);
-      } else if (dept && role) {
+      } else if ((portal === 'requisition' || portal === 'dept' || portal === 'department') && dept && role) {
+        // Explicit department requisition portal link
         document.getElementById('churchWebsiteApp').style.display = 'none';
         document.getElementById('churchDatabaseApp').style.display = 'block';
         isDepartmentPortal = true;
@@ -15936,11 +15977,19 @@
         document.getElementById('requisitionsAppSection').style.display = 'none';
         document.getElementById('cellReportsAppSection').style.display = 'none';
         document.getElementById('eventsCentreSection').style.display = 'none';
-        document.getElementById('departmentPortalView').style.display = 'block';
+        if (document.getElementById('departmentPortalView')) {
+          document.getElementById('departmentPortalView').style.display = 'block';
+        }
 
-        document.getElementById('portalTitleHeader').textContent = `${currentDept} (${currentRole} Access)`;
-        document.getElementById('portalDeptInput').value = currentDept;
-        document.getElementById('portalRoleInput').value = currentRole;
+        if (document.getElementById('portalTitleHeader')) {
+          document.getElementById('portalTitleHeader').textContent = `${currentDept} (${currentRole} Access)`;
+        }
+        if (document.getElementById('portalDeptInput')) {
+          document.getElementById('portalDeptInput').value = currentDept;
+        }
+        if (document.getElementById('portalRoleInput')) {
+          document.getElementById('portalRoleInput').value = currentRole;
+        }
 
         resetDeptForm();
       } else if (view === 'database') {
@@ -15949,9 +15998,15 @@
         document.getElementById('churchDatabaseApp').style.display = 'block';
         document.getElementById('loginSection').style.display = 'flex';
       } else {
-        // DEFAULT: PUBLIC CHURCH WEBSITE APPEARS FIRST!
+        // DEFAULT: PUBLIC CHURCH WEBSITE ALWAYS APPEARS FIRST!
         document.getElementById('churchWebsiteApp').style.display = 'block';
         document.getElementById('churchDatabaseApp').style.display = 'none';
+        if (document.getElementById('departmentPortalView')) {
+          document.getElementById('departmentPortalView').style.display = 'none';
+        }
+        if (document.getElementById('eventsStaffPortalView')) {
+          document.getElementById('eventsStaffPortalView').style.display = 'none';
+        }
 
         // Check if member visited to self-register or view events
         if (window.location.hash === '#events-centre' || window.location.hash === '#events' || urlParams.get('events') === 'true' || urlParams.get('book') === 'true') {
